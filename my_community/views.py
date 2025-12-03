@@ -12,3 +12,6 @@ def categories(request):
 
 def about_page(request):
     return HttpResponse('About_this_page')
+def topic_page(request):
+    return HttpResponse('<h1>topic_page</h1>')
+
