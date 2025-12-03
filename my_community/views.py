@@ -6,3 +6,6 @@ def index(request):
 def categories(request):
     return HttpResponse('<h1>Categories</h1>')
 
+def topic_page(request):
+    return HttpResponse('<h1>topic_page</h1>')
+
