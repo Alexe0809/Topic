@@ -41,5 +41,3 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ["order", "name"]
 
     list_per_page = 10
-
-
