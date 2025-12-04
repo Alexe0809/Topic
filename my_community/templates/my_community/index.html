@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форум | Главная</title>
+    <link rel="stylesheet" href="{% static 'my_community/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <!-- Верхний тулбар -->
+    <header class="toolbar">
+        <div class="toolbar-left">
+            <div class="logo">
+                <i class="fas fa-comments"></i>
+                <span>Форум</span>
+            </div>
+            <nav class="main-nav">
+                <a href="#" class="active"><i class="fas fa-home"></i> Главная</a>
+                <a href="#"><i class="fas fa-fire"></i> Популярное</a>
+                <a href="#"><i class="fas fa-clock"></i> Недавнее</a>
+                <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
+            </nav>
+        </div>
+
+        <div class="toolbar-right">
+            <div class="search-bar">
+                <input type="text" placeholder="Поиск тем...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="user-actions">
+                {% if user.is_authenticated %}
+                    <a href="#" class="btn btn-primary"><i class="fas fa-plus"></i> Новая тема</a>
+                    <div class="user-menu">
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}" alt="Аватар" class="avatar">
+                        <span>{{ user.username }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                {% else %}
+                    <a href="#" class="btn btn-outline">Войти</a>
+                    <a href="#" class="btn btn-primary">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <!-- Боковая панель с категориями -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3><i class="fas fa-list"></i> Категории</h3>
+                <ul class="category-list">
+                    <li class="category-item active">
+                        <i class="fas fa-globe"></i>
+                        <span>Все темы</span>
+                        <span class="badge">128</span>
+                    </li>
+                    <li class="category-item">
+                        <i class="fas fa-code"></i>
+                        <span>Программирование</span>
+                        <span class="badge">45</span>
+                    </li>
+                    <li class="category-item">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Игры</span>
+                        <span class="badge">32</span>
+                    </li>
+                    <li class="category-item">
+                        <i class="fas fa-film"></i>
+                        <span>Фильмы и сериалы</span>
+                        <span class="badge">28</span>
+                    </li>
+                    <li class="category-item">
+                        <i class="fas fa-music"></i>
+                        <span>Музыка</span>
+                        <span class="badge">19</span>
+                    </li>
+                    <li class="category-item">
+                        <i class="fas fa-book"></i>
+                        <span>Книги</span>
+                        <span class="badge">15</span>
+                    </li>
+                    <li class="category-item">
+                        <i class="fas fa-cogs"></i>
+                        <span>Технологии</span>
+                        <span class="badge">42</span>
+                    </li>
+                    <li class="category-item">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Здоровье</span>
+                        <span class="badge">12</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3><i class="fas fa-chart-line"></i> Активные темы</h3>
+                <div class="active-topics">
+                    <div class="active-topic">
+                        <div class="topic-title">Обсуждение нового фреймворка</div>
+                        <div class="topic-meta">42 ответа</div>
+                    </div>
+                    <div class="active-topic">
+                        <div class="topic-title">Лучшие игры 2024 года</div>
+                        <div class="topic-meta">87 ответов</div>
+                    </div>
+                    <div class="active-topic">
+                        <div class="topic-title">Советы по изучению Python</div>
+                        <div class="topic-meta">31 ответ</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <p>Онлайн: <strong>156</strong> пользователей</p>
+                <p>Тем: <strong>1,248</strong>, Сообщений: <strong>12,847</strong></p>
+            </div>
+        </aside>
+
+        <!-- Основной контент - актуальные темы -->
+        <main class="content">
+            <div class="content-header">
+                <h1><i class="fas fa-bolt"></i> Актуальные темы</h1>
+                <div class="content-actions">
+                    <button class="btn btn-outline"><i class="fas fa-filter"></i> Фильтр</button>
+                    <button class="btn btn-outline"><i class="fas fa-sort"></i> Сортировка</button>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Новая тема</button>
+                </div>
+            </div>
+            <div class="topics-list">
+                {% for topic in topics %}
+                    <a href="{{ topic.get_absolute_url }}" class="topic-card-link">
+                        <div class="topic-card">
+                            <div class="topic-icon">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="topic-content">
+                                <div class="topic-header">
+                                    <h3 class="topic-title">{{ topic.name }}</h3>
+                                    <div class="topic-category">Программирование</div>
+                                </div>
+                                <p class="topic-excerpt">{{ topic.description }}</p>
+                                <div class="topic-footer">
+                                    <div class="topic-author">
+                                        <img src="https://ui-avatars.com/api/?name={{ topic.author.username|urlencode }}"
+                                             alt="Автор" class="avatar-small">
+                                        <span>{{ topic.author.username }}</span>
+                                    </div>
+                                    <div class="topic-stats">
+                                        <span><i
+                                                class="far fa-comment"></i> {{ topic.comments.count|default:"0" }}</span>
+                                        <span><i class="far fa-eye"></i> {{ topic.views|default:"0" }}</span>
+                                        <span><i class="far fa-clock"></i> {{ topic.created_at|timesince }} назад</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="no-topics">
+                        <p>Темы пока не созданы. <a href="{% url 'create_topic' %}">Создайте первую!</a></p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="pagination">
+                <a href="#" class="page-link active">1</a>
+                <a href="#" class="page-link">2</a>
+                <a href="#" class="page-link">3</a>
+                <a href="#" class="page-link">4</a>
+                <a href="#" class="page-link">5</a>
+                <span class="page-link disabled">...</span>
+                <a href="#" class="page-link">12</a>
+                <a href="#" class="page-link next">Следующая <i class="fas fa-chevron-right"></i></a>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>© 2024 Форум. Все права защищены.</p>
+        <div class="footer-links">
+            <a href="#">О нас</a>
+            <a href="#">Правила</a>
+            <a href="#">Конфиденциальность</a>
+            <a href="#">Контакты</a>
+            <a href="#"><i class="fab fa-telegram"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+        </div>
+    </footer>
+</div>
+</body>
+</html>
