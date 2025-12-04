@@ -35,3 +35,11 @@ class CategoryAdmin(admin.ModelAdmin):
         "description",
         "order",
     ]
+
+    search_fields = ["name", "description", "slug"]
+
+    ordering = ["order", "name"]
+
+    list_per_page = 10
+
+

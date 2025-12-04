@@ -50,8 +50,8 @@ class Topic(UUIDModel):
         super().save(*args, **kwargs)
 
 
-class Category(models.Model):
-    name = models.CharField(max_length=50)
+class Category(UUIDModel):
+    name = models.CharField(max_length=50, null=False)
     slug = models.SlugField(unique=True)
-    description = models.TextField(max_length=1000)
+    description = models.TextField(max_length=1000, null=True)
     order = models.IntegerField(default=0)
