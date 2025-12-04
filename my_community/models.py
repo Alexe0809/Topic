@@ -26,3 +26,10 @@ class Topic(UUIDModel):
     is_archived = models.BooleanField(_("is archived"), default=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(max_length=1000)
+    order = models.IntegerField(default=0)
