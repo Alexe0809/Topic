@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-from django.shortcuts import render
 
 
 def index(request):
@@ -7,11 +6,12 @@ def index(request):
 
 
 def categories(request):
-    return HttpResponse('<h1>Categories</h1>')
+    return HttpResponse("<h1>Categories</h1>")
 
 
 def about_page(request):
-    return HttpResponse('About_this_page')
-def topic_page(request):
-    return HttpResponse('<h1>topic_page</h1>')
+    return HttpResponse("About_this_page")
 
+
+def topic_page(request):
+    return HttpResponse("<h1>topic_page</h1>")
