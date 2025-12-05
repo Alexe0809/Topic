@@ -1,0 +1,469 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форум | {{ topic.name }}</title>
+    <link rel="stylesheet" href="{% static 'my_community/style.css' %}">
+    <link rel="stylesheet" href="{% static 'my_community/topic_detail.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Верхний тулбар -->
+        <header class="toolbar">
+            <div class="toolbar-left">
+                <div class="logo">
+                    <i class="fas fa-comments"></i>
+                    <span>Форум</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="#"><i class="fas fa-home"></i> Главная</a>
+                    <a href="#"><i class="fas fa-fire"></i> Популярное</a>
+                    <a href="#"><i class="fas fa-clock"></i> Недавнее</a>
+                    <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
+                </nav>
+            </div>
+
+            <div class="toolbar-right">
+                <div class="search-bar">
+                    <input type="text" placeholder="Поиск тем...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <a href="#" class="btn btn-primary"><i class="fas fa-plus"></i> Новая тема</a>
+                        <div class="user-menu">
+                            <img src="https://ui-avatars.com/api/?name=Test" alt="Аватар" class="avatar">
+                            <span>{{ user.username }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline">Войти</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Боковая панель с информацией о теме -->
+            <aside class="topic-sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-info-circle"></i> Информация о теме</h3>
+                    <div class="topic-info">
+                        <div class="info-item">
+                            <span class="info-label">Автор:</span>
+                            <div class="author-info">
+                                <img src="https://ui-avatars.com/api/?name={{ topic.author.username|urlencode }}"
+                                     alt="{{ topic.author.username }}" class="avatar-medium">
+                                <div>
+                                    <strong>{{ topic.author.username }}</strong>
+                                    <small>Присоединился {{ topic.author.date_joined|date:"d.m.Y" }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Категория:</span>
+                            <a href="#" class="topic-category-large">
+                                <i class="fas {{ topic.category.icon|default:'fa-folder' }}"></i>
+                                {{ topic.category.name }}
+                            </a>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Создана:</span>
+                            <span>{{ topic.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Обновлена:</span>
+                            <span>{{ topic.updated_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Просмотры:</span>
+                            <span><i class="far fa-eye"></i> {{ topic.views }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">Сообщений:</span>
+                            <span><i class="far fa-comment"></i> {{ comments.count }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-link"></i> Быстрые действия</h3>
+                    <div class="quick-actions">
+                        <button class="btn btn-block btn-primary" onclick="scrollToComments()">
+                            <i class="fas fa-comment"></i> Комментировать
+                        </button>
+
+                        {% if user.is_authenticated %}
+                            {% if user == topic.author or user.is_staff %}
+                            <div class="topic-actions">
+                                <a href="#" class="btn btn-block btn-outline">
+                                    <i class="fas fa-edit"></i> Редактировать тему
+                                </a>
+
+                                <button class="btn btn-block btn-danger" onclick="confirmDelete()">
+                                    <i class="fas fa-trash"></i> Удалить тему
+                                </button>
+                            </div>
+                            {% endif %}
+
+                            {% if user not in topic.subscribers.all %}
+                            <button class="btn btn-block btn-outline" onclick="subscribeTopic()">
+                                <i class="fas fa-bell"></i> Подписаться
+                            </button>
+                            {% else %}
+                            <button class="btn btn-block btn-outline" onclick="unsubscribeTopic()">
+                                <i class="fas fa-bell-slash"></i> Отписаться
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-users"></i> Участники обсуждения</h3>
+                    <div class="participants">
+                        {% for participant in participants|slice:":10" %}
+                        <div class="participant">
+                            <img src="https://ui-avatars.com/api/?name={{ participant.username|urlencode }}"
+                                 alt="{{ participant.username }}" class="avatar-small">
+                            <span>{{ participant.username }}</span>
+                        </div>
+                        {% endfor %}
+                        {% if participants.count > 10 %}
+                        <div class="more-participants">
+                            и еще {{ participants.count|add:"-10" }} участников
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Основной контент - тема и комментарии -->
+            <main class="topic-content">
+                <!-- Заголовок темы -->
+                <div class="topic-header-section">
+                    <nav class="breadcrumb">
+                        <a href="#">Главная</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <a href="#"></a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>{{ topic.name|truncatechars:50 }}</span>
+                    </nav>
+
+                    <div class="topic-main-header">
+                        <h1 class="topic-title-main">{{ topic.name }}</h1>
+
+                        <div class="topic-meta-main">
+                            <div class="author-meta">
+                                <img src="https://ui-avatars.com/api/?name={{ topic.author.username|urlencode }}"
+                                     alt="{{ topic.author.username }}" class="avatar-small">
+                                <div>
+                                    <strong>{{ topic.author.username }}</strong>
+                                    <div class="topic-date">{{ topic.created_at|date:"d.m.Y в H:i" }}</div>
+                                </div>
+                            </div>
+
+                            <div class="topic-stats-main">
+                                <span><i class="far fa-eye"></i> {{ topic.views }} просмотров</span>
+                                <span><i class="far fa-comment"></i> {{ comments.count }} комментариев</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Содержимое темы -->
+                <article class="topic-body">
+                    <div class="topic-description">
+                        {{ topic.description|linebreaks }}
+                    </div>
+
+                    {% if topic.image %}
+                    <div class="topic-image">
+                        <img src="{{ topic.image.url }}" alt="Изображение темы">
+                    </div>
+                    {% endif %}
+
+                    <div class="topic-tags">
+                        {% for tag in topic.tags.all %}
+                        <span class="tag">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="topic-footer-main">
+                        <div class="topic-actions-main">
+                            {% if user.is_authenticated %}
+                            <button class="btn-like" onclick="likeTopic()">
+                                <i class="far fa-thumbs-up"></i>
+                                <span id="like-count">{{ topic.likes.count }}</span>
+                            </button>
+
+                            <button class="btn-dislike" onclick="dislikeTopic()">
+                                <i class="far fa-thumbs-down"></i>
+                                <span id="dislike-count">{{ topic.dislikes.count }}</span>
+                            </button>
+
+                            <button class="btn-bookmark" onclick="bookmarkTopic()">
+                                <i class="far fa-bookmark"></i> Сохранить
+                            </button>
+                            {% endif %}
+
+                            <button class="btn-share" onclick="shareTopic()">
+                                <i class="fas fa-share-alt"></i> Поделиться
+                            </button>
+                        </div>
+
+                        <div class="topic-modified">
+                            {% if topic.updated_at != topic.created_at %}
+                            <small>Изменено: {{ topic.updated_at|date:"d.m.Y в H:i" }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Комментарии -->
+                <section class="comments-section" id="comments">
+                    <div class="comments-header">
+                        <h2><i class="far fa-comments"></i> Комментарии ({{ comments.count }})</h2>
+
+                        <div class="comments-sort">
+                            <span>Сортировка:</span>
+                            <select onchange="sortComments(this.value)">
+                                <option value="newest">Сначала новые</option>
+                                <option value="oldest">Сначала старые</option>
+                                <option value="popular">По популярности</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Форма добавления комментария -->
+                    {% if user.is_authenticated %}
+                    <div class="comment-form-container">
+                        <form method="post" action="#" class="comment-form" id="comment-form">
+                            {% csrf_token %}
+                            <div class="form-header">
+                                <img src="https://ui-avatars.com/api/?name={{ user.username|urlencode }}"
+                                     alt="{{ user.username }}" class="avatar-small">
+                                <strong>Вы отвечаете как {{ user.username }}</strong>
+                            </div>
+
+                            <div class="form-body">
+                                <textarea name="text"
+                                          placeholder="Напишите ваш комментарий..."
+                                          rows="4"
+                                          required></textarea>
+
+                                <div class="form-footer">
+                                    <div class="form-tools">
+                                        <button type="button" class="btn-tool" onclick="addEmoji()">
+                                            <i class="far fa-smile"></i>
+                                        </button>
+                                        <button type="button" class="btn-tool" onclick="addImage()">
+                                            <i class="fas fa-image"></i>
+                                        </button>
+                                        <button type="button" class="btn-tool" onclick="addCode()">
+                                            <i class="fas fa-code"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane"></i> Отправить
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="login-prompt">
+                        <p>
+                            <a href="{% url 'login' %}?next={{ request.path }}">Войдите</a> или
+                            <a href="{% url 'register' %}">зарегистрируйтесь</a>, чтобы оставлять комментарии.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Список комментариев -->
+                    <div class="comments-list">
+                        {% for comment in comments %}
+                        <div class="comment" id="comment-{{ comment.id }}">
+                            <div class="comment-header">
+                                <div class="comment-author">
+                                    <img src="https://ui-avatars.com/api/?name={{ comment.author.username|urlencode }}"
+                                         alt="{{ comment.author.username }}" class="avatar-small">
+                                    <div>
+                                        <strong>{{ comment.author.username }}</strong>
+                                        <div class="comment-date">{{ comment.created_at|date:"d.m.Y в H:i" }}</div>
+                                    </div>
+                                </div>
+
+                                {% if user == comment.author or user.is_staff %}
+                                <div class="comment-actions">
+                                    <button class="btn-action" onclick="editComment({{ comment.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action" onclick="deleteComment({{ comment.id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="comment-body">
+                                {{ comment.text|linebreaks }}
+
+                                {% if comment.image %}
+                                <div class="comment-image">
+                                    <img src="{{ comment.image.url }}" alt="Изображение в комментарии">
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="comment-footer">
+                                <div class="comment-votes">
+                                    {% if user.is_authenticated %}
+                                    <button class="vote-btn upvote {% if user in comment.likes.all %}active{% endif %}"
+                                            onclick="voteComment({{ comment.id }}, 'like')">
+                                        <i class="fas fa-chevron-up"></i>
+                                        <span class="vote-count">{{ comment.likes.count }}</span>
+                                    </button>
+
+                                    <button class="vote-btn downvote {% if user in comment.dislikes.all %}active{% endif %}"
+                                            onclick="voteComment({{ comment.id }}, 'dislike')">
+                                        <i class="fas fa-chevron-down"></i>
+                                        <span class="vote-count">{{ comment.dislikes.count }}</span>
+                                    </button>
+                                    {% else %}
+                                    <span class="vote-count"><i class="fas fa-chevron-up"></i> {{ comment.likes.count }}</span>
+                                    <span class="vote-count"><i class="fas fa-chevron-down"></i> {{ comment.dislikes.count }}</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="comment-reply">
+                                    {% if user.is_authenticated %}
+                                    <button class="btn-reply" onclick="replyToComment({{ comment.id }}, '{{ comment.author.username }}')">
+                                        <i class="fas fa-reply"></i> Ответить
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Ответы на комментарий -->
+                            {% for reply in comment.replies.all %}
+                            <div class="comment reply">
+                                <div class="comment-header">
+                                    <div class="comment-author">
+                                        <img src="https://ui-avatars.com/api/?name={{ reply.author.username|urlencode }}"
+                                             alt="{{ reply.author.username }}" class="avatar-small">
+                                        <div>
+                                            <strong>{{ reply.author.username }}</strong>
+                                            <div class="comment-date">{{ reply.created_at|date:"d.m.Y в H:i" }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="reply-to">
+                                        <i class="fas fa-reply"></i> ответ для {{ comment.author.username }}
+                                    </div>
+                                </div>
+
+                                <div class="comment-body">
+                                    {{ reply.text|linebreaks }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% empty %}
+                        <div class="no-comments">
+                            <i class="far fa-comment-dots fa-3x"></i>
+                            <h3>Комментариев пока нет</h3>
+                            <p>Будьте первым, кто оставит комментарий!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Пагинация комментариев -->
+                    {% if comments.has_other_pages %}
+                    <div class="comments-pagination">
+                        {% if comments.has_previous %}
+                            <a href="?page={{ comments.previous_page_number }}#comments" class="page-link">
+                                <i class="fas fa-chevron-left"></i> Назад
+                            </a>
+                        {% endif %}
+
+                        {% for num in comments.paginator.page_range %}
+                            {% if comments.number == num %}
+                                <span class="page-link active">{{ num }}</span>
+                            {% elif num > comments.number|add:'-3' and num < comments.number|add:'3' %}
+                                <a href="?page={{ num }}#comments" class="page-link">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if comments.has_next %}
+                            <a href="?page={{ comments.next_page_number }}#comments" class="page-link">
+                                Далее <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </section>
+
+                <!-- Похожие темы -->
+                <section class="related-topics">
+                    <h2><i class="fas fa-link"></i> Похожие темы</h2>
+                    <div class="related-list">
+                        {% for related in related_topics %}
+                        <a href="{{ related.get_absolute_url }}" class="related-topic">
+                            <h3>{{ related.name|truncatechars:60 }}</h3>
+                            <div class="related-meta">
+                                <span><i class="far fa-comment"></i> {{ related.comments.count }}</span>
+                                <span><i class="far fa-eye"></i> {{ related.views }}</span>
+                                <span>{{ related.created_at|timesince }} назад</span>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <p class="no-related">Похожих тем не найдено</p>
+                        {% endfor %}
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer class="footer">
+            <p>© 2024 Форум. Все права защищены.</p>
+            <div class="footer-links">
+                <a href="#">О нас</a>
+                <a href="#">Правила</a>
+                <a href="#">Конфиденциальность</a>
+                <a href="#">Контакты</a>
+                <a href="#"><i class="fab fa-telegram"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Модальное окно для удаления -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> Удалить тему?</h3>
+            <p>Вы уверены, что хотите удалить тему "{{ topic.name }}"? Это действие нельзя отменить.</p>
+            <div class="modal-actions">
+                <button onclick="closeModal()" class="btn btn-outline">Отмена</button>
+                <form method="post" action="#">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
