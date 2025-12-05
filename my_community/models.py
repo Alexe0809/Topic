@@ -1,9 +1,9 @@
 import uuid
 
 from django.db import models
-from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from slugify import slugify
 
 
 class UUIDModel(models.Model):
@@ -30,7 +30,7 @@ class Topic(UUIDModel):
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 
     def get_absolute_url(self):
-        return reverse("topic", kwargs={"topic_id": self.pk})
+        return reverse("topic", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
         if not self.slug:

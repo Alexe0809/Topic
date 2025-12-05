@@ -17,8 +17,8 @@ def about_page(request):
     return HttpResponse("About_this_page")
 
 
-def topic_page(request, topic_id):
-    topic = get_object_or_404(Topic, id=topic_id)
+def topic_page(request, slug):
+    topic = get_object_or_404(Topic, slug=slug)
     return HttpResponse(f"<h1>{topic.name}</h1>")
 
 
