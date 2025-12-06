@@ -86,3 +86,6 @@ class User(UUIDModel):
     hashed_password = models.CharField(max_length=60, null=False, blank=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(max_length=1000, null=True)
+    order = models.IntegerField(default=0)

@@ -1,54 +1,22 @@
+{% extends 'my_community/base.html' %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Форум | {{ topic.name }}</title>
-    <link rel="stylesheet" href="{% static 'my_community/style.css' %}">
-    <link rel="stylesheet" href="{% static 'my_community/topic_detail.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>{% block title %}Форум | {{ topic.name }}{% endblock %}</title>
+    {% block extra_css %}
+        <link rel="stylesheet" href="{% static 'my_community/style.css' %}">
+        <link rel="stylesheet" href="{% static 'my_community/topic_detail.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% endblock %}
 </head>
 <body>
 <div class="container">
-    <!-- Верхний тулбар -->
-    <header class="toolbar">
-        <div class="toolbar-left">
-            <div class="logo">
-                <i class="fas fa-comments"></i>
-                <span>Форум</span>
-            </div>
-            <nav class="main-nav">
-                <a href="#"><i class="fas fa-home"></i> Главная</a>
-                <a href="#"><i class="fas fa-fire"></i> Популярное</a>
-                <a href="#"><i class="fas fa-clock"></i> Недавнее</a>
-                <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
-            </nav>
-        </div>
 
-        <div class="toolbar-right">
-            <div class="search-bar">
-                <input type="text" placeholder="Поиск тем...">
-                <button><i class="fas fa-search"></i></button>
-            </div>
-
-            <div class="user-actions">
-                {% if user.is_authenticated %}
-                    <a href="#" class="btn btn-primary"><i class="fas fa-plus"></i> Новая тема</a>
-                    <div class="user-menu">
-                        <img src="https://ui-avatars.com/api/?name=Test" alt="Аватар" class="avatar">
-                        <span>{{ user.username }}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline">Войти</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
-                {% endif %}
-            </div>
-        </div>
-    </header>
-
-    <div class="main-content">
+    {% block sidebar %}
+        <div class="main-content">
         <!-- Боковая панель с информацией о теме -->
         <aside class="topic-sidebar">
             <div class="sidebar-section">
@@ -147,8 +115,10 @@
                 </div>
             </div>
         </aside>
+    {% endblock %}
 
-        <!-- Основной контент - тема и комментарии -->
+    <!-- Основной контент - тема и комментарии -->
+    {% block content %}
         <main class="topic-content">
             <!-- Заголовок темы -->
             <div class="topic-header-section">
@@ -439,21 +409,8 @@
                 </div>
             </section>
         </main>
-    </div>
-
-    <footer class="footer">
-        <p>© 2024 Форум. Все права защищены.</p>
-        <div class="footer-links">
-            <a href="#">О нас</a>
-            <a href="#">Правила</a>
-            <a href="#">Конфиденциальность</a>
-            <a href="#">Контакты</a>
-            <a href="#"><i class="fab fa-telegram"></i></a>
-            <a href="#"><i class="fab fa-github"></i></a>
         </div>
-    </footer>
+    {% endblock %}
 </div>
-
-
 </body>
 </html>
