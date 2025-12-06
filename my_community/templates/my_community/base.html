@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}title{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<header>
+
+    <main>
+            <header class="toolbar">
+                <div class="toolbar-left">
+                    <div class="logo">
+                        <i class="fas fa-comments"></i>
+                        <span>Форум</span>
+                    </div>
+                    <nav class="main-nav">
+                        <a href="#" class="active"><i class="fas fa-home"></i> Главная</a>
+                        <a href="#"><i class="fas fa-fire"></i> Популярное</a>
+                        <a href="#"><i class="fas fa-clock"></i> Недавнее</a>
+                        <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
+                    </nav>
+                </div>
+
+                <div class="toolbar-right">
+                    <div class="search-bar">
+                        <input type="text" placeholder="Поиск тем...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+
+                    <div class="user-actions">
+                        {% if user.is_authenticated %}
+                            <a href="#" class="btn btn-primary"><i class="fas fa-plus"></i> Новая тема</a>
+                            <div class="user-menu">
+                                <img src="https://ui-avatars.com/api/?name={{ user.username }}" alt="Аватар"
+                                     class="avatar">
+                                <span>{{ user.username }}</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        {% else %}
+                            <a href="#" class="btn btn-outline">Войти</a>
+                            <a href="#" class="btn btn-primary">Регистрация</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+
+        {% block sidebar %}
+        {% endblock %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>© 2025 Форум. Все права защищены.</p>
+        <div class="footer-links">
+            <a href="#">О нас</a>
+            <a href="#">Правила</a>
+            <a href="#">Конфиденциальность</a>
+            <a href="#">Контакты</a>
+            <a href="#"><i class="fab fa-telegram"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+        </div>
+    </footer>
+</body>
+</html>
