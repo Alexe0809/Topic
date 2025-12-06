@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from my_community.models import Category, Topic
+from my_community.models import Category, Topic, User
 
 
 @admin.register(Topic)
@@ -27,6 +27,31 @@ class TopicAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at", "slug"]
 
 
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = [
+        "user_name",
+        "slug",
+        "phone",
+        "email",
+        "created_at",
+        "updated_at",
+        "is_email_verified",
+    ]
+
+    list_filter = ["user_name", "created_at"]
+
+    search_fields = ["user_name", "email"]
+
+    list_editable = ["is_email_verified"]
+
+    list_per_page = 50
+
+    ordering = ["-created_at"]
+
+    readonly_fields = ["created_at", "updated_at", "slug"]
+    
+    
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = [
