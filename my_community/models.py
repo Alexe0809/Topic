@@ -48,3 +48,10 @@ class Topic(UUIDModel):
             self.slug = f"{self.slug}-{uuid.uuid4().hex[:8]}"
 
         super().save(*args, **kwargs)
+
+
+class Category(UUIDModel):
+    name = models.CharField(max_length=50, null=False)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(max_length=1000, null=True)
+    order = models.IntegerField(default=0)
