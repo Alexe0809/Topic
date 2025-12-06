@@ -16,3 +16,5 @@ media/
 
 # Test/ALembic
 src/tests/__pycache__/
+
+db.sqlite3
