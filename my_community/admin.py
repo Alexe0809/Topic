@@ -28,7 +28,7 @@ class TopicAdmin(admin.ModelAdmin):
 
 
 @admin.register(User)
-class TopicAdmin(admin.ModelAdmin):
+class UserAdmin(admin.ModelAdmin):
     list_display = [
         "user_name",
         "slug",
@@ -36,7 +36,7 @@ class TopicAdmin(admin.ModelAdmin):
         "email",
         "created_at",
         "updated_at",
-        "is_email_verified"
+        "is_email_verified",
     ]
 
     list_filter = ["user_name", "created_at"]

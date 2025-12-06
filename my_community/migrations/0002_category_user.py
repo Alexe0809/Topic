@@ -77,7 +77,8 @@ class Migration(migrations.Migration):
                         max_length=50,
                         validators=[
                             django.core.validators.RegexValidator(
-                                message="Invalid email", regex="[0-9A-Za-z\\-_@\\.]"
+                                message="Invalid email",
+                                regex="[0-9A-Za-z\\-_@\\.]",
                             )
                         ],
                     ),
@@ -92,11 +93,15 @@ class Migration(migrations.Migration):
                 ("hashed_password", models.CharField(max_length=60)),
                 (
                     "created_at",
-                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="created at"
+                    ),
                 ),
                 (
                     "updated_at",
-                    models.DateTimeField(auto_now=True, verbose_name="updated at"),
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="updated at"
+                    ),
                 ),
             ],
             bases=("my_community.uuidmodel",),
