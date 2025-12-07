@@ -50,8 +50,8 @@ class UserAdmin(admin.ModelAdmin):
     ordering = ["-created_at"]
 
     readonly_fields = ["created_at", "updated_at", "slug"]
-    
-    
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = [
@@ -64,5 +64,7 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ["name", "description", "slug"]
 
     ordering = ["order", "name"]
+
+    readonly_fields = ["slug"]
 
     list_per_page = 10

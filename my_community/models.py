@@ -7,6 +7,49 @@ from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
 
+class SlugGeneratorMixin:
+    def save(self, *args, **kwargs):
+        priority_slug_fields = ["name", "user_name"]
+        slug_value = None
+
+        for field in priority_slug_fields:
+            if hasattr(self, field):
+                value = getattr(self, field)
+                if value:
+                    slug_value = str(value)
+                    break
+
+        if not slug_value:
+            raise AttributeError("No valid field found for slug generation")
+
+        if not self.slug:
+            base_slug = slugify(slug_value)
+            if not base_slug:
+                base_slug = "item"
+
+            model_class = self.__class__
+            candidate = base_slug
+            counter = 1
+
+            while model_class.objects.filter(slug=candidate).exists():
+                candidate = f"{base_slug}-{counter}"
+                counter += 1
+                if counter > 100:
+                    candidate = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+                    break
+
+            self.slug = candidate
+
+        if (
+            self.__class__.objects.filter(slug=self.slug)
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            self.slug = f"{self.slug}-{uuid.uuid4().hex[:8]}"
+
+        super().save(*args, **kwargs)
+
+
 class UUIDModel(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -16,49 +59,14 @@ class UUIDModel(models.Model):
     )
 
 
-class Topic(UUIDModel):
-    name = models.CharField(_("name"), max_length=100, null=False)
-    description = models.CharField(
-        _("description"),
-        max_length=1024,
-        blank=True,
-    )
-    slug = models.SlugField(_("slug"), max_length=250, unique=True)
-    is_pinned = models.BooleanField(_("is pinned"), default=False)
-    is_closed = models.BooleanField(_("is closed"), default=False)
-    is_archived = models.BooleanField(_("is archived"), default=False)
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
-
-    def get_absolute_url(self):
-        return reverse("topic", kwargs={"slug": self.slug})
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            base_slug = slugify(self.name)
-            self.slug = base_slug
-            counter = 1
-            while Topic.objects.filter(slug=self.slug).exists():
-                self.slug = f"{base_slug}-{counter}"
-                counter += 1
-
-        if not self.slug:
-            self.slug = slugify(self.name)
-
-        if Topic.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
-            self.slug = f"{self.slug}-{uuid.uuid4().hex[:8]}"
-
-        super().save(*args, **kwargs)
-
-
-class Category(UUIDModel):
+class Category(SlugGeneratorMixin, UUIDModel):
     name = models.CharField(max_length=50, null=False)
     slug = models.SlugField(unique=True, null=False)
     description = models.TextField(max_length=1000, null=True)
     order = models.IntegerField(default=0)
 
 
-class User(UUIDModel):
+class User(SlugGeneratorMixin, UUIDModel):
     phone_validator = RegexValidator(
         regex=r"^[0-9A-Za-z+\-\s()]", message="Invalid phone number"
     )
@@ -86,6 +94,29 @@ class User(UUIDModel):
     hashed_password = models.CharField(max_length=60, null=False, blank=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
-    slug = models.SlugField(unique=True)
     description = models.TextField(max_length=1000, null=True)
     order = models.IntegerField(default=0)
+
+
+class Topic(SlugGeneratorMixin, UUIDModel):
+    name = models.CharField(_("name"), max_length=100, null=False)
+    description = models.CharField(
+        _("description"),
+        max_length=1024,
+        blank=True,
+    )
+    slug = models.SlugField(_("slug"), max_length=250, unique=True)
+    is_pinned = models.BooleanField(_("is pinned"), default=False)
+    is_closed = models.BooleanField(_("is closed"), default=False)
+    is_archived = models.BooleanField(_("is archived"), default=False)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    author = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="topics"
+    )
+    categories = models.ManyToManyField(
+        Category, related_name="topics", blank=True
+    )
+
+    def get_absolute_url(self):
+        return reverse("topic", kwargs={"slug": self.slug})
