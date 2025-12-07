@@ -21,46 +21,19 @@
             <div class="sidebar-section">
                 <h3><i class="fas fa-list"></i> Категории</h3>
                 <ul class="category-list">
-                    <li class="category-item active">
-                        <i class="fas fa-globe"></i>
-                        <span>Все темы</span>
-                        <span class="badge">128</span>
-                    </li>
-                    <li class="category-item">
-                        <i class="fas fa-code"></i>
-                        <span>Программирование</span>
-                        <span class="badge">45</span>
-                    </li>
-                    <li class="category-item">
-                        <i class="fas fa-gamepad"></i>
-                        <span>Игры</span>
-                        <span class="badge">32</span>
-                    </li>
-                    <li class="category-item">
-                        <i class="fas fa-film"></i>
-                        <span>Фильмы и сериалы</span>
-                        <span class="badge">28</span>
-                    </li>
-                    <li class="category-item">
-                        <i class="fas fa-music"></i>
-                        <span>Музыка</span>
-                        <span class="badge">19</span>
-                    </li>
-                    <li class="category-item">
-                        <i class="fas fa-book"></i>
-                        <span>Книги</span>
-                        <span class="badge">15</span>
-                    </li>
-                    <li class="category-item">
-                        <i class="fas fa-cogs"></i>
-                        <span>Технологии</span>
-                        <span class="badge">42</span>
-                    </li>
-                    <li class="category-item">
-                        <i class="fas fa-heartbeat"></i>
-                        <span>Здоровье</span>
-                        <span class="badge">12</span>
-                    </li>
+                    {% for item in categories %}
+                        <a href="{{ item.get_absolute_url }}" class="topic-card-link">
+                            {% if cat_selected == item %}
+                                <li class="category-item active">
+                                    {% else %}
+                                <li class="category-item">
+                            {% endif %}
+                            <i class="fas fa-globe"></i>
+                            <span>{{ item.name }}</span>
+                            <span class="badge">128</span>
+                            </li>
+                        </a>
+                    {% endfor %}
                 </ul>
             </div>
 

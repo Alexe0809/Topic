@@ -65,6 +65,12 @@ class Category(SlugGeneratorMixin, UUIDModel):
     description = models.TextField(max_length=1000, null=True)
     order = models.IntegerField(default=0)
 
+    def get_absolute_url(self):
+        return reverse("category", kwargs={"slug": self.slug})
+
+    def __str__(self):
+        return self.name
+
 
 class User(SlugGeneratorMixin, UUIDModel):
     phone_validator = RegexValidator(

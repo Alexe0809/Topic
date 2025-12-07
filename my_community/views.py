@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, TemplateView
 
-from my_community.models import Topic
+from my_community.models import Category, Topic
 
 
 def index(request):
@@ -35,6 +35,25 @@ class IndexView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        categories = Category.objects.all()
         topics = Topic.objects.all()
         context["topics"] = topics
+        context["categories"] = categories
+        context["cat_selected"] = 0
+        return context
+
+
+class CategoryView(TemplateView):
+    template_name = "my_community/index.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        slug = self.kwargs.get("slug")
+        categories = Category.objects.all()
+        topics = Topic.objects.filter(categories__slug=slug).select_related(
+            "author"
+        )
+        context["topics"] = topics
+        context["categories"] = categories
+        context["cat_selected"] = categories.filter(slug=slug).first()
         return context
