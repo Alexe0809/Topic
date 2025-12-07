@@ -1,0 +1,179 @@
+{% extends 'my_community/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Форум | Регистрация{% endblock %}</title>
+    {% block extra_css %}
+        <link rel="stylesheet" href="{% static 'my_community/style.css' %}">
+        <link rel="stylesheet" href="{% static 'my_community/auth.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% endblock %}
+</head>
+<body>
+<div class="container">
+    {% block content %}
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i class="fas fa-comments"></i>
+                        <h2>Присоединяйтесь к нашему сообществу</h2>
+                    </div>
+                    <p class="auth-subtitle">Создайте аккаунт, чтобы начать общение</p>
+                </div>
+
+                <form method="post" class="auth-form" id="register-form">
+                    {% csrf_token %}
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_username">
+                                <i class="fas fa-user"></i> Имя пользователя
+                            </label>
+                            <input type="text"
+                                   name="username"
+                                   id="id_username"
+                                   placeholder="Придумайте имя пользователя"
+                                   value="{{ form.username.value|default:'' }}"
+                                   required>
+                            <div class="form-hint">
+                                Только буквы, цифры и символы @/./+/-/_
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.username.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_email">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email"
+                                   name="email"
+                                   id="id_email"
+                                   placeholder="Введите ваш email"
+                                   value="{{ form.email.value|default:'' }}"
+                                   required>
+                            {% if form.email.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.email.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_password1">
+                                <i class="fas fa-lock"></i> Пароль
+                            </label>
+                            <div class="password-input">
+                                <input type="password"
+                                       name="password1"
+                                       id="id_password1"
+                                       placeholder="Придумайте пароль"
+                                       required>
+                                <button type="button" class="toggle-password" onclick="togglePassword('id_password1')">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-bar" id="strength-bar"></div>
+                                <span id="strength-text">Надежность пароля</span>
+                            </div>
+                            {% if form.password1.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.password1.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_password2">
+                                <i class="fas fa-lock"></i> Подтверждение пароля
+                            </label>
+                            <div class="password-input">
+                                <input type="password"
+                                       name="password2"
+                                       id="id_password2"
+                                       placeholder="Повторите пароль"
+                                       required>
+                                <button type="button" class="toggle-password" onclick="togglePassword('id_password2')">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password2.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.password2.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="terms" id="terms" required>
+                            <span>Я согласен с <a href="{% url 'terms' %}">Условиями использования</a> и <a
+                                    href="{% url 'privacy' %}">Политикой конфиденциальности</a></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="newsletter" id="newsletter">
+                            <span>Получать новости и обновления форума на email</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
+                        <i class="fas fa-user-plus"></i> Зарегистрироваться
+                    </button>
+
+                    <div class="auth-divider">
+                        <span>или</span>
+                    </div>
+
+                    <div class="social-auth">
+                        <button type="button" class="btn-social btn-google">
+                            <i class="fab fa-google"></i> Продолжить с Google
+                        </button>
+                        <button type="button" class="btn-social btn-github">
+                            <i class="fab fa-github"></i> Продолжить с GitHub
+                        </button>
+                    </div>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
+                </div>
+            </div>
+
+            <div class="auth-benefits">
+                <h3><i class="fas fa-check-circle"></i> Преимущества регистрации</h3>
+                <ul class="benefits-list">
+                    <li><i class="fas fa-comment"></i> Создавайте темы и комментируйте</li>
+                    <li><i class="fas fa-bell"></i> Подписывайтесь на интересные обсуждения</li>
+                    <li><i class="fas fa-star"></i> Получайте репутацию за полезные ответы</li>
+                    <li><i class="fas fa-bookmark"></i> Сохраняйте важные темы в закладки</li>
+                    <li><i class="fas fa-users"></i> Создавайте группы и приглашайте друзей</li>
+                    <li><i class="fas fa-trophy"></i> Участвуйте в конкурсах и рейтингах</li>
+                </ul>
+            </div>
+        </div>
+    {% endblock %}
+</div>
+</body>
+</html>

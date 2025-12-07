@@ -1,0 +1,183 @@
+{% extends 'my_community/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Форум | Подтверждение Email{% endblock %}</title>
+    {% block extra_css %}
+        <link rel="stylesheet" href="{% static 'my_community/style.css' %}">
+        <link rel="stylesheet" href="{% static 'my_community/auth.css' %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% endblock %}
+</head>
+<body>
+<div class="container">
+    {% block content %}
+        <div class="confirmation-container">
+            {% if success %}
+                <div class="confirmation-card success">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-check-circle fa-4x"></i>
+                    </div>
+
+                    <h1>Email успешно подтвержден!</h1>
+                    <p class="confirmation-message">
+                        Ваш адрес электронной почты был успешно подтвержден.
+                        Теперь вы можете войти в свой аккаунт и начать пользоваться всеми возможностями форума.
+                    </p>
+
+                    <div class="confirmation-actions">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Войти в аккаунт
+                        </a>
+                        <a href="{% url 'index' %}" class="btn btn-outline btn-lg">
+                            <i class="fas fa-home"></i> На главную
+                        </a>
+                    </div>
+
+                    <div class="confirmation-tips">
+                        <h3><i class="fas fa-lightbulb"></i> Что дальше?</h3>
+                        <ul>
+                            <li>Заполните свой профиль, чтобы другие участники узнали о вас больше</li>
+                            <li>Настройте уведомления в настройках аккаунта</li>
+                            <li>Изучите правила форума для комфортного общения</li>
+                        </ul>
+                    </div>
+                </div>
+            {% elif expired %}
+                <div class="confirmation-card warning">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-exclamation-triangle fa-4x"></i>
+                    </div>
+
+                    <h1>Ссылка устарела</h1>
+                    <p class="confirmation-message">
+                        Срок действия ссылки для подтверждения email истек.
+                        Пожалуйста, запросите новую ссылку для подтверждения.
+                    </p>
+
+                    <div class="confirmation-actions">
+                        <form method="post" action="{% url 'resend_confirmation' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="email" value="{{ email }}">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-redo"></i> Отправить новую ссылку
+                            </button>
+                        </form>
+                        <a href="{% url 'contact' %}" class="btn btn-outline btn-lg">
+                            <i class="fas fa-question-circle"></i> Нужна помощь?
+                        </a>
+                    </div>
+
+                    <div class="confirmation-tips">
+                        <h3><i class="fas fa-info-circle"></i> Советы:</h3>
+                        <ul>
+                            <li>Проверьте папку "Спам" в вашей почте</li>
+                            <li>Убедитесь, что вводите правильный email</li>
+                            <li>Ссылка действительна в течение 24 часов</li>
+                        </ul>
+                    </div>
+                </div>
+            {% elif invalid %}
+                <div class="confirmation-card error">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-times-circle fa-4x"></i>
+                    </div>
+
+                    <h1>Недействительная ссылка</h1>
+                    <p class="confirmation-message">
+                        Ссылка для подтверждения email недействительна или уже была использована.
+                        Возможно, ваш email уже подтвержден.
+                    </p>
+
+                    <div class="confirmation-actions">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Попробовать войти
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-outline btn-lg">
+                            <i class="fas fa-user-plus"></i> Зарегистрироваться
+                        </a>
+                    </div>
+
+                    <div class="confirmation-tips">
+                        <h3><i class="fas fa-life-ring"></i> Нужна помощь?</h3>
+                        <ul>
+                            <li>Попробуйте войти в аккаунт с вашими данными</li>
+                            <li>Если не получается войти, проверьте правильность email</li>
+                            <li>Обратитесь в <a href="{% url 'contact' %}">службу поддержки</a></li>
+                        </ul>
+                    </div>
+                </div>
+            {% else %}
+                <div class="confirmation-card info">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-envelope fa-4x"></i>
+                    </div>
+
+                    <h1>Подтвердите ваш Email</h1>
+                    <p class="confirmation-message">
+                        Мы отправили письмо с ссылкой для подтверждения на адрес <strong>{{ email }}</strong>.
+                        Пожалуйста, проверьте вашу почту и перейдите по ссылке в письме.
+                    </p>
+
+                    <div class="confirmation-progress">
+                        <div class="progress-steps">
+                            <div class="step active">
+                                <span class="step-number">1</span>
+                                <span class="step-text">Регистрация</span>
+                            </div>
+                            <div class="step active">
+                                <span class="step-number">2</span>
+                                <span class="step-text">Отправка письма</span>
+                            </div>
+                            <div class="step">
+                                <span class="step-number">3</span>
+                                <span class="step-text">Подтверждение</span>
+                            </div>
+                            <div class="step">
+                                <span class="step-number">4</span>
+                                <span class="step-text">Начало работы</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="confirmation-actions">
+                        <form method="post" action="{% url 'resend_confirmation' %}" class="resend-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="email" value="{{ email }}">
+                            <button type="submit" class="btn btn-outline" id="resend-btn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                                <span id="resend-text">Отправить повторно (60)</span>
+                            </button>
+                        </form>
+                        <a href="{% url 'index' %}" class="btn btn-outline">
+                            <i class="fas fa-home"></i> На главную
+                        </a>
+                    </div>
+
+                    <div class="confirmation-tips">
+                        <h3><i class="fas fa-question-circle"></i> Не получили письмо?</h3>
+                        <ul>
+                            <li>Проверьте папку "Спам" или "Рассылки"</li>
+                            <li>Убедитесь, что email указан правильно</li>
+                            <li>Подождите несколько минут - письма могут приходить с задержкой</li>
+                            <li>Добавьте наш адрес в список контактов</li>
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="confirmation-footer">
+                <p>
+                    <i class="fas fa-shield-alt"></i>
+                    Мы никогда не передаем вашу личную информацию третьим лицам.
+                    <a href="{% url 'privacy' %}">Узнать больше</a>
+                </p>
+            </div>
+        </div>
+    {% endblock %}
+</div>
+</body>
+</html>
