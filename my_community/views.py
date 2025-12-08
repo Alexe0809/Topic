@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, TemplateView
 
-from my_community.models import Category, Topic
+from my_community.models import Category, EmailConfirmation, Topic
 
 
 def index(request):
@@ -40,6 +40,28 @@ class IndexView(TemplateView):
         context["topics"] = topics
         context["categories"] = categories
         context["cat_selected"] = 0
+        return context
+
+
+class ConfirmView(TemplateView):
+    template_name = "my_community/email_confirm.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        token = self.kwargs.get("token")
+        confirmation = get_object_or_404(EmailConfirmation, token=token)
+        try:
+            if confirmation.confirm():
+                context["success"] = True
+                context["message"] = "Email успешно подтверждён"
+        except ValueError as e:
+            context["expired"] = True
+            context["message"] = str(e)
+
+        except EmailConfirmation.DoesNotExist:
+            context["else"] = True
+            context["message"] = "Токен не найден"
+
         return context
 
 
