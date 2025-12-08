@@ -1,6 +1,6 @@
 import uuid
 
-from django.core.validators import RegexValidator
+from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -9,7 +9,7 @@ from slugify import slugify
 
 class SlugGeneratorMixin:
     def save(self, *args, **kwargs):
-        priority_slug_fields = ["name", "user_name"]
+        priority_slug_fields = ["name", "username"]
         slug_value = None
 
         for field in priority_slug_fields:
@@ -22,28 +22,27 @@ class SlugGeneratorMixin:
         if not slug_value:
             raise AttributeError("No valid field found for slug generation")
 
-        if not self.slug:
-            base_slug = slugify(slug_value)
-            if not base_slug:
-                base_slug = "item"
+        base_slug = slugify(slug_value)
+        if not base_slug:
+            base_slug = "item"
 
-            model_class = self.__class__
-            candidate = base_slug
-            counter = 1
+        model_class = self.__class__
+        candidate = base_slug
+        counter = 1
 
-            while model_class.objects.filter(slug=candidate).exists():
-                candidate = f"{base_slug}-{counter}"
-                counter += 1
-                if counter > 100:
-                    candidate = f"{base_slug}-{uuid.uuid4().hex[:8]}"
-                    break
+        while model_class.objects.filter(slug=candidate).exists():
+            candidate = f"{base_slug}-{counter}"
+            counter += 1
+            if counter > 100:
+                candidate = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+                break
 
-            self.slug = candidate
+        self.slug = candidate
 
         if (
-            self.__class__.objects.filter(slug=self.slug)
-            .exclude(pk=self.pk)
-            .exists()
+                self.__class__.objects.filter(slug=self.slug)
+                        .exclude(pk=self.pk)
+                        .exists()
         ):
             self.slug = f"{self.slug}-{uuid.uuid4().hex[:8]}"
 
@@ -75,36 +74,30 @@ class Category(SlugGeneratorMixin, UUIDModel):
         return self.name
 
 
-class User(SlugGeneratorMixin, UUIDModel):
-    phone_validator = RegexValidator(
-        regex=r"^[0-9A-Za-z+\-\s()]", message="Invalid phone number"
-    )
-    email_validator = RegexValidator(
-        regex=r"[0-9A-Za-z\-_@\.]", message="Invalid email"
-    )
-    user_name_validator = RegexValidator(
-        regex=r"[0-9A-Za-z-\_]", message="Invalid name"
-    )
-
-    user_name = models.CharField(
-        max_length=30, null=False, blank=False, validators=[user_name_validator]
-    )
+class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
+    email = models.EmailField(unique=True, blank=False)
     slug = models.SlugField(unique=True, null=False)
     phone = models.CharField(
-        max_length=20, blank=False, null=False, validators=[phone_validator]
-    )
-    email = models.CharField(
-        max_length=50, blank=False, null=False, validators=[email_validator]
-    )
+        max_length=20, blank=False, null=False)
     is_email_verified = models.BooleanField(default=False)
     image = models.ImageField(
         null=True, blank=True, upload_to="static/avatars/"
     )
-    hashed_password = models.CharField(max_length=60, null=False, blank=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
-    description = models.TextField(max_length=1000, null=True)
     order = models.IntegerField(default=0)
+    groups = models.ManyToManyField(
+        Group,
+        related_name='custom_users',
+        blank=True,
+        help_text='The groups this user belongs to.'
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name='custom_user_permissions',
+        blank=True,
+        help_text='Specific permissions for this user.'
+    )
 
 
 class Topic(SlugGeneratorMixin, UUIDModel):
