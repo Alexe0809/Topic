@@ -58,6 +58,9 @@ class UUIDModel(models.Model):
         verbose_name=_("ID"),
     )
 
+    class Meta:
+        abstract = True
+
 
 class Category(SlugGeneratorMixin, UUIDModel):
     name = models.CharField(max_length=50, null=False)
