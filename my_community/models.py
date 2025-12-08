@@ -126,3 +126,24 @@ class Topic(SlugGeneratorMixin, UUIDModel):
 
     def get_absolute_url(self):
         return reverse("topic", kwargs={"slug": self.slug})
+
+
+class Comment(UUIDModel):
+    description = models.CharField(
+        _("description"),
+        max_length=1024,
+        blank=True,
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.PROTECT)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    like = models.PositiveIntegerField(_("likes"), default=0)
+    dislike = models.PositiveIntegerField(_("dislikes"), default=0)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+    )
