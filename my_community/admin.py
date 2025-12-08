@@ -1,5 +1,5 @@
 from django.contrib import admin
-
+from django.contrib.auth.admin import UserAdmin
 from my_community.models import Category, Topic, User
 
 
@@ -27,29 +27,99 @@ class TopicAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at", "slug"]
 
 
+
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = [
-        "user_name",
-        "slug",
-        "phone",
-        "email",
-        "created_at",
-        "updated_at",
-        "is_email_verified",
-    ]
+class CustomUserAdmin(UserAdmin):
+    model = User
 
-    list_filter = ["user_name", "created_at"]
+    # Поля, которые показываются в списке пользователей
+    list_display = (
+        'username',
+        'email',
+        'phone',
+        'is_staff',
+        'is_superuser',
+        'is_active',
+        'is_email_verified',
+        'created_at',
+    )
 
-    search_fields = ["user_name", "email"]
+    # Фильтры справа
+    list_filter = (
+        'is_staff',
+        'is_superuser',
+        'is_active',
+        'is_email_verified',
+        'groups',
+    )
 
-    list_editable = ["is_email_verified"]
+    # Поиск
+    search_fields = ('username', 'email', 'phone')
 
-    list_per_page = 50
+    # Поля только для чтения
+    readonly_fields = ('created_at', 'updated_at', 'phone')
 
-    ordering = ["-created_at"]
+    # Блоки в форме редактирования пользователя
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
 
-    readonly_fields = ["created_at", "updated_at", "slug"]
+        ('Personal info', {
+            'fields': (
+                'email',
+                'phone',
+                'image',
+                'slug',
+            )
+        }),
+
+        ('Status', {
+            'fields': (
+                'is_active',
+                'is_staff',
+                'is_superuser',
+                'is_email_verified',
+            )
+        }),
+
+        ('Permissions', {
+            'fields': (
+                'groups',
+                'user_permissions',
+            )
+        }),
+
+        ('Important dates', {
+            'fields': (
+                'last_login',
+                'created_at',
+                'updated_at',
+            )
+        }),
+    )
+
+    # Поля при создании пользователя через админку
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                'username',
+                'email',
+                'phone',
+                'slug',
+                'image',
+                'password1',
+                'password2',
+                'is_active',
+                'is_staff',
+                'is_superuser',
+                'is_email_verified',
+                'groups',
+                'user_permissions',
+            ),
+        }),
+    )
+
+    ordering = ('created_at',)
 
 
 @admin.register(Category)
