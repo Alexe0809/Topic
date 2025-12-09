@@ -29,10 +29,10 @@
                     </p>
 
                     <div class="confirmation-actions">
-                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <a href="#" class="btn btn-primary btn-lg">
                             <i class="fas fa-sign-in-alt"></i> Войти в аккаунт
                         </a>
-                        <a href="{% url 'index' %}" class="btn btn-outline btn-lg">
+                        <a href="#" class="btn btn-outline btn-lg">
                             <i class="fas fa-home"></i> На главную
                         </a>
                     </div>
@@ -59,14 +59,14 @@
                     </p>
 
                     <div class="confirmation-actions">
-                        <form method="post" action="{% url 'resend_confirmation' %}">
+                        <form method="post" action="#">
                             {% csrf_token %}
                             <input type="hidden" name="email" value="{{ email }}">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-redo"></i> Отправить новую ссылку
                             </button>
                         </form>
-                        <a href="{% url 'contact' %}" class="btn btn-outline btn-lg">
+                        <a href="#" class="btn btn-outline btn-lg">
                             <i class="fas fa-question-circle"></i> Нужна помощь?
                         </a>
                     </div>
@@ -93,7 +93,7 @@
                     </p>
 
                     <div class="confirmation-actions">
-                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <a href="#" class="btn btn-primary btn-lg">
                             <i class="fas fa-sign-in-alt"></i> Попробовать войти
                         </a>
                         <a href="{% url 'register' %}" class="btn btn-outline btn-lg">
@@ -144,7 +144,7 @@
                     </div>
 
                     <div class="confirmation-actions">
-                        <form method="post" action="{% url 'resend_confirmation' %}" class="resend-form">
+                        <form method="post" action="#" class="resend-form">
                             {% csrf_token %}
                             <input type="hidden" name="email" value="{{ email }}">
                             <button type="submit" class="btn btn-outline" id="resend-btn" disabled>
@@ -152,7 +152,7 @@
                                 <span id="resend-text">Отправить повторно (60)</span>
                             </button>
                         </form>
-                        <a href="{% url 'index' %}" class="btn btn-outline">
+                        <a href="#" class="btn btn-outline">
                             <i class="fas fa-home"></i> На главную
                         </a>
                     </div>
@@ -173,7 +173,7 @@
                 <p>
                     <i class="fas fa-shield-alt"></i>
                     Мы никогда не передаем вашу личную информацию третьим лицам.
-                    <a href="{% url 'privacy' %}">Узнать больше</a>
+                    <a href="#">Узнать больше</a>
                 </p>
             </div>
         </div>

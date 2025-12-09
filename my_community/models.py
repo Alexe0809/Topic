@@ -1,9 +1,11 @@
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from slugify import slugify
@@ -156,3 +158,103 @@ class Comment(UUIDModel):
         blank=True,
         related_name="children",
     )
+
+
+class EmailConfirmation(UUIDModel):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="email_confirmations",
+        verbose_name=_("user"),
+    )
+
+    token = models.CharField(
+        _("confirmation token"),
+        max_length=255,
+        unique=True,
+    )
+
+    created_at = models.DateTimeField(
+        _("created at"),
+        auto_now_add=True,
+    )
+
+    expires_at = models.DateTimeField(
+        _("expires at"),
+    )
+
+    confirmed_at = models.DateTimeField(
+        _("confirmed at"),
+        null=True,
+        blank=True,
+    )
+
+    is_used = models.BooleanField(
+        _("is used"),
+        default=False,
+    )
+
+    class Meta:
+        verbose_name = _("email confirmation")
+        verbose_name_plural = _("email confirmations")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Email confirmation for {self.user.email} ({self.created_at})"
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(hours=24)
+
+        if not self.token:
+            self.token = self._generate_token()
+
+        super().save(*args, **kwargs)
+
+    def _generate_token(self):
+        return uuid.uuid4().hex + uuid.uuid4().hex
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    @property
+    def is_valid(self):
+        return not self.is_used and not self.is_expired
+
+    def confirm(self):
+        if not self.is_valid:
+            raise ValueError(_("Token is invalid, expired or already used"))
+
+        self.is_used = True
+        self.confirmed_at = timezone.now()
+        self.user.is_email_verified = True
+        self.user.save()
+        self.save()
+
+        return True
+
+    @classmethod
+    def create_for_user(cls, user, expiration_hours=24):
+        cls.objects.filter(user=user, is_used=False).update(is_used=True)
+
+        return cls.objects.create(
+            user=user,
+            expires_at=timezone.now() + timedelta(hours=expiration_hours),
+        )
+
+    @classmethod
+    def validate_token(cls, token):
+        try:
+            confirmation = cls.objects.get(token=token)
+            if confirmation.is_valid:
+                confirmation.confirm()
+                return confirmation
+            return None
+        except cls.DoesNotExist:
+            return None
+
+    def get_confirmation_url(self):
+        from django.urls import reverse
+
+        return reverse("confirm-email", kwargs={"token": self.token})

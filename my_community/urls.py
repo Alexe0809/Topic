@@ -7,6 +7,8 @@ from .views import (
     privacy_form,
     registration_form,
     terms_page,
+    ConfirmView,
+    about_page,
 )
 
 urlpatterns = [
@@ -16,4 +18,7 @@ urlpatterns = [
     path("register/", registration_form, name="register"),
     path("privacy/", privacy_form, name="privacy"),
     path("terms/", terms_page, name="terms"),
+    path(
+        "confirmation/<str:token>", ConfirmView.as_view(), name="confirm-email"
+    ),
 ]

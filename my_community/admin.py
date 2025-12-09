@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from my_community.models import Category, Topic, User
+from my_community.models import Category, EmailConfirmation, Topic, User
 
 
 @admin.register(Topic)
@@ -149,3 +149,34 @@ class CategoryAdmin(admin.ModelAdmin):
     readonly_fields = ["slug"]
 
     list_per_page = 10
+
+
+@admin.register(EmailConfirmation)
+class EmailConfirmationAdmin(admin.ModelAdmin):
+    list_display = [
+        "created_at",
+        "expires_at",
+        "confirmed_at",
+    ]
+
+    list_filter = [
+        "is_used",
+        ("created_at", admin.DateFieldListFilter),
+        ("expires_at", admin.DateFieldListFilter),
+        "user__is_email_verified",
+    ]
+
+    search_fields = [
+        "token",
+        "user__email",
+        "user__username",
+        "user__phone",
+    ]
+
+    ordering = ["-created_at"]
+    readonly_fields = [
+        "token",
+        "created_at",
+    ]
+
+    autocomplete_fields = ["user"]
