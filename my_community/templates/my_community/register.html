@@ -25,26 +25,70 @@
                     <p class="auth-subtitle">Создайте аккаунт, чтобы начать общение</p>
                 </div>
 
-                <form method="post" class="auth-form" id="register-form">
+                <form method="post" action="{% url 'register' %}" class="auth-form" id="register-form">
                     {% csrf_token %}
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="id_username">
-                                <i class="fas fa-user"></i> Имя пользователя
+                                <i class="fas fa-user"></i> Никнейм
                             </label>
                             <input type="text"
                                    name="username"
                                    id="id_username"
-                                   placeholder="Придумайте имя пользователя"
+                                   placeholder="Имя вашего пользователя"
                                    value="{{ form.username.value|default:'' }}"
                                    required>
                             <div class="form-hint">
-                                Только буквы, цифры и символы @/./+/-/_
+                                must contain at least one letter and only letters, numbers, or '_', '@', '-', '/' are allowed
                             </div>
                             {% if form.username.errors %}
                                 <div class="field-errors">
                                     {% for error in form.username.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="first_name">
+                                <i class="fas fa-user"></i> Имя
+                            </label>
+                            <input type="text"
+                                   name="first_name"
+                                   id="id_first_name"
+                                   placeholder="Ваше имя"
+                                   value="{{ form.first_name.value|default:'' }}"
+                                   required>
+                            <div class="form-hint">
+                                must contain at least one letter and only letters, numbers, or '_', '@', '-', '/' are allowed
+                            </div>
+                            {% if form.first_name.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.first_name.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="last_name">
+                                <i class="fas fa-user"></i> Фамилия
+                            </label>
+                            <input type="text"
+                                   name="last_name"
+                                   id="id_last_name"
+                                   placeholder="Ваша фамилия"
+                                   value="{{ form.last_name.value|default:'' }}"
+                                   required>
+                            <div class="form-hint">
+                                must contain at least one letter and only letters, numbers, or '_', '@', '-', '/' are allowed
+                            </div>
+                            {% if form.last_name.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.last_name.errors %}
                                         <span>{{ error }}</span>
                                     {% endfor %}
                                 </div>
@@ -73,16 +117,16 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="id_password1">
+                            <label for="id_password">
                                 <i class="fas fa-lock"></i> Пароль
                             </label>
                             <div class="password-input">
                                 <input type="password"
-                                       name="password1"
-                                       id="id_password1"
+                                       name="password"
+                                       id="id_password"
                                        placeholder="Придумайте пароль"
                                        required>
-                                <button type="button" class="toggle-password" onclick="togglePassword('id_password1')">
+                                <button type="button" class="toggle-password" onclick="togglePassword('id_password')">
                                     <i class="far fa-eye"></i>
                                 </button>
                             </div>
@@ -90,9 +134,9 @@
                                 <div class="strength-bar" id="strength-bar"></div>
                                 <span id="strength-text">Надежность пароля</span>
                             </div>
-                            {% if form.password1.errors %}
+                            {% if form.password.errors %}
                                 <div class="field-errors">
-                                    {% for error in form.password1.errors %}
+                                    {% for error in form.password.errors %}
                                         <span>{{ error }}</span>
                                     {% endfor %}
                                 </div>
@@ -140,6 +184,7 @@
 
                     <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
                         <i class="fas fa-user-plus"></i> Зарегистрироваться
+                        <a?>
                     </button>
 
                     <div class="auth-divider">
@@ -157,7 +202,7 @@
                 </form>
 
                 <div class="auth-footer">
-                    <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
+                    <p>Уже есть аккаунт? <a href="#">Войдите</a></p>
                 </div>
             </div>
 

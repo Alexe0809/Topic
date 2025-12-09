@@ -1,9 +1,11 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.modelfields import PhoneNumberField
 from slugify import slugify
 
 
@@ -40,9 +42,9 @@ class SlugGeneratorMixin:
         self.slug = candidate
 
         if (
-                self.__class__.objects.filter(slug=self.slug)
-                        .exclude(pk=self.pk)
-                        .exists()
+            self.__class__.objects.filter(slug=self.slug)
+            .exclude(pk=self.pk)
+            .exists()
         ):
             self.slug = f"{self.slug}-{uuid.uuid4().hex[:8]}"
 
@@ -75,10 +77,21 @@ class Category(SlugGeneratorMixin, UUIDModel):
 
 
 class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
+    username_validator = RegexValidator(
+        regex=r"^(?=.*[A-Za-z])[A-Za-z0-9_@/-]*$",
+        message="Invalid username: must contain at least one letter and only letters,"
+        " numbers, or '_', '@', '-', '/' are allowed.",
+    )
+    username = models.CharField(
+        max_length=100,
+        null=False,
+        blank=False,
+        unique=True,
+        validators=[username_validator],
+    )
     email = models.EmailField(unique=True, blank=False)
     slug = models.SlugField(unique=True, null=False)
-    phone = models.CharField(
-        max_length=20, blank=False, null=False)
+    phone = PhoneNumberField(region=None, unique=False, blank=True, null=False)
     is_email_verified = models.BooleanField(default=False)
     image = models.ImageField(
         null=True, blank=True, upload_to="static/avatars/"
@@ -88,15 +101,15 @@ class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
     order = models.IntegerField(default=0)
     groups = models.ManyToManyField(
         Group,
-        related_name='custom_users',
+        related_name="custom_users",
         blank=True,
-        help_text='The groups this user belongs to.'
+        help_text="The groups this user belongs to.",
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name='custom_user_permissions',
+        related_name="custom_user_permissions",
         blank=True,
-        help_text='Specific permissions for this user.'
+        help_text="Specific permissions for this user.",
     )
 
 

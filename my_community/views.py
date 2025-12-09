@@ -1,20 +1,9 @@
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.generic import DetailView, TemplateView
 
+from my_community.forms import UserRegistration
 from my_community.models import Category, Topic
-
-
-def index(request):
-    return HttpResponse({"a": 1})
-
-
-def categories(request):
-    return HttpResponse("<h1>Categories</h1>")
-
-
-def about_page(request):
-    return HttpResponse("About_this_page")
 
 
 class TopicDetailView(DetailView):
@@ -57,3 +46,23 @@ class CategoryView(TemplateView):
         context["categories"] = categories
         context["cat_selected"] = categories.filter(slug=slug).first()
         return context
+
+
+def registration_form(request):
+    if request.method == "POST":
+        form = UserRegistration(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse("home"))
+
+    else:
+        form = UserRegistration()
+    return render(request, "my_community/register.html", {"form": form})
+
+
+def terms_page(request):
+    return render(request, "my_community/terms.html")
+
+
+def privacy_form(request):
+    return render(request, "my_community/privacy.html")
