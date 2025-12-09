@@ -2,10 +2,12 @@ import uuid
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.modelfields import PhoneNumberField
 from slugify import slugify
 
 
@@ -77,9 +79,21 @@ class Category(SlugGeneratorMixin, UUIDModel):
 
 
 class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
+    username_validator = RegexValidator(
+        regex=r"^(?=.*[A-Za-z])[A-Za-z0-9_@/-]*$",
+        message="Invalid username: must contain at least one letter and only letters,"
+        " numbers, or '_', '@', '-', '/' are allowed.",
+    )
+    username = models.CharField(
+        max_length=100,
+        null=False,
+        blank=False,
+        unique=True,
+        validators=[username_validator],
+    )
     email = models.EmailField(unique=True, blank=False)
     slug = models.SlugField(unique=True, null=False)
-    phone = models.CharField(max_length=20, blank=False, null=False)
+    phone = PhoneNumberField(region=None, unique=False, blank=True, null=False)
     is_email_verified = models.BooleanField(default=False)
     image = models.ImageField(
         null=True, blank=True, upload_to="static/avatars/"
