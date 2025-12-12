@@ -1,7 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from my_community.models import Category, EmailConfirmation, Topic, User
+from my_community.models import (
+    Category,
+    EmailConfirmation,
+    PasswordResetConfirmation,
+    Topic,
+    User,
+)
 
 
 @admin.register(Topic)
@@ -105,7 +111,6 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
 
-    # Поля при создании пользователя через админку
     add_fieldsets = (
         (
             None,
@@ -151,8 +156,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-@admin.register(EmailConfirmation)
-class EmailConfirmationAdmin(admin.ModelAdmin):
+class BaseConfirmationAdmin(admin.ModelAdmin):
     list_display = [
         "created_at",
         "expires_at",
@@ -180,3 +184,13 @@ class EmailConfirmationAdmin(admin.ModelAdmin):
     ]
 
     autocomplete_fields = ["user"]
+
+
+@admin.register(EmailConfirmation)
+class EmailConfirmationAdmin(BaseConfirmationAdmin):
+    pass
+
+
+@admin.register(PasswordResetConfirmation)
+class PasswordResetConfirmationAdmin(BaseConfirmationAdmin):
+    pass

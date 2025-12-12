@@ -543,3 +543,184 @@ body {
     text-decoration: none;
     color: inherit;
 }
+
+/* Дополнительные стили для тулбара */
+
+/* Выпадающее меню пользователя */
+.user-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.user-menu:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.user-menu .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.user-menu:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    color: #2c3e50;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.3s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f5f9;
+    color: #4dabf7;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #e2e8f0;
+    margin: 5px 0;
+}
+
+.dropdown-form {
+    width: 100%;
+}
+
+.logout-btn {
+    color: #e53e3e;
+}
+
+.logout-btn:hover {
+    background-color: #fff5f5;
+    color: #e53e3e;
+}
+
+/* Анимация для выпадающего меню */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .user-menu span {
+        display: none; /* Скрываем имя пользователя на мобильных */
+    }
+
+    .dropdown-menu {
+        min-width: 180px;
+        right: -10px;
+    }
+
+    .user-actions {
+        gap: 10px;
+    }
+
+    .btn.btn-primary, .btn.btn-outline {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Стили для активных ссылок */
+.main-nav a.active {
+    background-color: rgba(77, 171, 247, 0.2);
+    color: white;
+}
+
+.main-nav a {
+    color: #d1d8e0;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.main-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Индикатор уведомлений */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #e53e3e;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #2c3e50;
+}
+
+/* Если хотите добавить иконку колокольчика для уведомлений */
+.notification-icon {
+    position: relative;
+    padding: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.notification-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
