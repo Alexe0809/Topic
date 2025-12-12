@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import DetailView, TemplateView
 
+from my_community.forms import UserRegistration
 from my_community.models import Category, EmailConfirmation, Topic
 
 
