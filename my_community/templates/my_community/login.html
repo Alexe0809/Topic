@@ -19,32 +19,39 @@
             <div class="auth-card">
                 <div class="auth-header">
                     <div class="auth-logo">
-                        <i class="fas fa-comments"></i>
-                        <h2>Добро пожаловать обратно</h2>
+                        <i class="fas fa-sign-in-alt"></i>
+                        <h2>Вход в аккаунт</h2>
                     </div>
-                    <p class="auth-subtitle">Войдите в свой аккаунт, чтобы продолжить</p>
+                    <p class="auth-subtitle">Введите ваши учетные данные</p>
                 </div>
+
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                <i class="fas fa-info-circle"></i> {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
                 <form method="post" class="auth-form" id="login-form">
                     {% csrf_token %}
-                    {% if form.non_field_errors %}
+
+                    <!-- Ошибки аутентификации -->
+                    {% if form.errors %}
                         <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                <p><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
-                            {% endfor %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Неверное имя пользователя или пароль. Попробуйте еще раз.
                         </div>
                     {% endif %}
 
+                    <!-- Поле для имени пользователя -->
                     <div class="form-group">
-                        <label for="id_username">
-                            <i class="fas fa-user"></i> Имя пользователя или Email
+                        <label for="{{ form.username.id_for_label }}">
+                            <i class="fas fa-user"></i> {{ form.username.label }}
                         </label>
-                        <input type="text"
-                               name="username"
-                               id="id_username"
-                               placeholder="Введите имя пользователя или email"
-                               value="{{ form.username.value|default:'' }}"
-                               required>
+                        {{ form.username }}
                         {% if form.username.errors %}
                             <div class="field-errors">
                                 {% for error in form.username.errors %}
@@ -54,16 +61,13 @@
                         {% endif %}
                     </div>
 
+                    <!-- Поле для пароля -->
                     <div class="form-group">
-                        <label for="id_password">
-                            <i class="fas fa-lock"></i> Пароль
+                        <label for="{{ form.password.id_for_label }}">
+                            <i class="fas fa-lock"></i> {{ form.password.label }}
                         </label>
                         <div class="password-input">
-                            <input type="password"
-                                   name="password"
-                                   id="id_password"
-                                   placeholder="Введите ваш пароль"
-                                   required>
+                            {{ form.password }}
                             <button type="button" class="toggle-password" onclick="togglePassword('id_password')">
                                 <i class="far fa-eye"></i>
                             </button>
@@ -77,58 +81,99 @@
                         {% endif %}
                     </div>
 
+                    <!-- Опции "Запомнить меня" и "Забыли пароль" -->
                     <div class="form-options">
                         <label class="checkbox-label">
-                            <input type="checkbox" name="remember" id="remember">
+                            <input type="checkbox" name="remember_me" id="remember_me">
                             <span>Запомнить меня</span>
                         </label>
-                        <a href="{% url 'password_reset' %}" class="forgot-password">
-                            Забыли пароль?
+                        <a href="#" class="forgot-password">
+                            <i class="fas fa-key"></i> Забыли пароль?
                         </a>
                     </div>
 
+                    <!-- Кнопка входа -->
                     <button type="submit" class="btn btn-primary btn-block">
                         <i class="fas fa-sign-in-alt"></i> Войти
                     </button>
+
+                    <input type="hidden" name="next" value="{{ next }}">
 
                     <div class="auth-divider">
                         <span>или</span>
                     </div>
 
+                    <!-- Социальная авторизация -->
                     <div class="social-auth">
                         <button type="button" class="btn-social btn-google">
-                            <i class="fab fa-google"></i> Продолжить с Google
+                            <i class="fab fa-google"></i> Войти через Google
                         </button>
                         <button type="button" class="btn-social btn-github">
-                            <i class="fab fa-github"></i> Продолжить с GitHub
+                            <i class="fab fa-github"></i> Войти через GitHub
                         </button>
                     </div>
                 </form>
 
                 <div class="auth-footer">
-                    <p>Еще нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь</a></p>
+                    <p>Нет аккаунта? <a href="{% url 'register' %}">Создайте новый</a></p>
                 </div>
             </div>
 
             <div class="auth-info">
                 <div class="info-card">
-                    <i class="fas fa-users fa-3x"></i>
-                    <h3>Присоединяйтесь к сообществу</h3>
-                    <p>Более 10,000 активных участников обсуждают различные темы</p>
+                    <i class="fas fa-rocket fa-3x"></i>
+                    <h3>Быстрый доступ</h3>
+                    <p>Войдите, чтобы мгновенно получить доступ ко всем функциям форума</p>
                 </div>
                 <div class="info-card">
-                    <i class="fas fa-comment-alt fa-3x"></i>
-                    <h3>Участвуйте в обсуждениях</h3>
-                    <p>Делитесь мнением, задавайте вопросы и находите ответы</p>
+                    <i class="fas fa-comments fa-3x"></i>
+                    <h3>Продолжайте общение</h3>
+                    <p>Вернитесь к своим обсуждениям и комментариям</p>
                 </div>
                 <div class="info-card">
-                    <i class="fas fa-bell fa-3x"></i>
-                    <h3>Будьте в курсе</h3>
-                    <p>Подписывайтесь на интересные темы и получайте уведомления</p>
+                    <i class="fas fa-cog fa-3x"></i>
+                    <h3>Персонализация</h3>
+                    <p>Настройте профиль под свои предпочтения</p>
                 </div>
             </div>
         </div>
     {% endblock %}
 </div>
+
+{% block extra_js %}
+    <script>
+        // Функция для показа/скрытия пароля
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Автофокус на поле логина при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function () {
+            const usernameInput = document.getElementById('id_username');
+            if (usernameInput) {
+                usernameInput.focus();
+            }
+        });
+
+        // Отправка формы по Enter
+        document.getElementById('login-form').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.querySelector('button[type="submit"]').click();
+            }
+        });
+    </script>
+{% endblock %}
 </body>
 </html>

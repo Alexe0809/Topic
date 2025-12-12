@@ -1,9 +1,16 @@
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import SetPasswordForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import DetailView, TemplateView
 
-from my_community.forms import UserRegistration
-from my_community.models import Category, EmailConfirmation, Topic
+from my_community.forms import UserLogin, UserRegistration
+from my_community.models import (
+    Category,
+    EmailConfirmation,
+    PasswordResetConfirmation,
+    Topic,
+)
 
 
 class TopicDetailView(DetailView):
@@ -81,6 +88,45 @@ def registration_form(request):
     else:
         form = UserRegistration()
     return render(request, "my_community/register.html", {"form": form})
+
+
+def login_form(request):
+    if request.method == "POST":
+        form = UserLogin(request, request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect("home")
+    else:
+        form = UserLogin(request)
+    return render(request, "my_community/login.html", {"form": form})
+
+
+def reset_password(request, token):
+    confirmation = get_object_or_404(PasswordResetConfirmation, token=token)
+    print(confirmation.is_valid)
+    if not confirmation.is_valid:
+        return redirect("login")
+
+    user = confirmation.user
+    if request.method == "POST":
+        form = SetPasswordForm(user=user, data=request.POST)
+        if form.is_valid():
+            confirmation.confirm()
+            form.save()
+            return redirect("home")
+    else:
+        form = SetPasswordForm(user=user)
+
+    return render(request, "my_community/reset_password.html", {"form": form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("home")
 
 
 def terms_page(request):

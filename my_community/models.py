@@ -160,16 +160,9 @@ class Comment(UUIDModel):
     )
 
 
-class EmailConfirmation(UUIDModel):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="email_confirmations",
-        verbose_name=_("user"),
-    )
-
+class BaseConfirmation(UUIDModel):
     token = models.CharField(
-        _("confirmation token"),
+        _("token"),
         max_length=255,
         unique=True,
     )
@@ -195,12 +188,10 @@ class EmailConfirmation(UUIDModel):
     )
 
     class Meta:
-        verbose_name = _("email confirmation")
-        verbose_name_plural = _("email confirmations")
-        ordering = ["-created_at"]
+        abstract = True
 
     def __str__(self):
-        return f"Email confirmation for {self.user.email} ({self.created_at})"
+        return "No defined"
 
     def save(self, *args, **kwargs):
         if not self.expires_at:
@@ -223,16 +214,7 @@ class EmailConfirmation(UUIDModel):
         return not self.is_used and not self.is_expired
 
     def confirm(self):
-        if not self.is_valid:
-            raise ValueError(_("Token is invalid, expired or already used"))
-
-        self.is_used = True
-        self.confirmed_at = timezone.now()
-        self.user.is_email_verified = True
-        self.user.save()
-        self.save()
-
-        return True
+        raise ValueError("undefined")
 
     @classmethod
     def create_for_user(cls, user, expiration_hours=24):
@@ -258,3 +240,59 @@ class EmailConfirmation(UUIDModel):
         from django.urls import reverse
 
         return reverse("confirm-email", kwargs={"token": self.token})
+
+
+class PasswordResetConfirmation(BaseConfirmation):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="password_reset_confirmations",
+        verbose_name=_("user"),
+    )
+
+    class Meta:
+        verbose_name = _("password reset confirmation")
+        verbose_name_plural = _("password resets confirmations")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Password reset confirmation for {self.user.email} ({self.created_at})"
+
+    def confirm(self):
+        if not self.is_valid:
+            raise ValueError(_("Token is invalid, expired or already used"))
+
+        self.is_used = True
+        self.confirmed_at = timezone.now()
+        self.save()
+
+        return True
+
+
+class EmailConfirmation(BaseConfirmation):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="email_confirmations",
+        verbose_name=_("user"),
+    )
+
+    class Meta:
+        verbose_name = _("email confirmation")
+        verbose_name_plural = _("email confirmations")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Email confirmation for {self.user.email} ({self.created_at})"
+
+    def confirm(self):
+        if not self.is_valid:
+            raise ValueError(_("Token is invalid, expired or already used"))
+
+        self.is_used = True
+        self.confirmed_at = timezone.now()
+        self.user.is_email_verified = True
+        self.user.save()
+        self.save()
+
+        return True
