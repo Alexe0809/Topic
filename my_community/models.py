@@ -2,6 +2,8 @@ import uuid
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
@@ -78,6 +80,13 @@ class Category(SlugGeneratorMixin, UUIDModel):
         return self.name
 
 
+def password_validator(value):
+    try:
+        validate_password(value)
+    except ValidationError as e:
+        raise ValidationError(e.messages)
+
+
 class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
     username_validator = RegexValidator(
         regex=r"^(?=.*[A-Za-z])[A-Za-z0-9_@/-]*$",
@@ -90,6 +99,9 @@ class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
         blank=False,
         unique=True,
         validators=[username_validator],
+    )
+    password = models.CharField(
+        max_length=50, null=False, blank=False, validators=[password_validator]
     )
     email = models.EmailField(unique=True, blank=False)
     slug = models.SlugField(unique=True, null=False)
