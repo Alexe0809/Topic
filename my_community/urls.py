@@ -2,13 +2,12 @@ from django.urls import path
 
 from .views import (
     CategoryView,
+    ConfirmView,
     IndexView,
     TopicDetailView,
     privacy_form,
     registration_form,
     terms_page,
-    ConfirmView,
-    about_page,
 )
 
 urlpatterns = [

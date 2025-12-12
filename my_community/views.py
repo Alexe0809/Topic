@@ -74,7 +74,8 @@ def registration_form(request):
     if request.method == "POST":
         form = UserRegistration(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            EmailConfirmation.create_for_user(user)
             return redirect(reverse("home"))
 
     else:
