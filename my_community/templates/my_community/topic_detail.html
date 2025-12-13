@@ -11,6 +11,7 @@
         <link rel="stylesheet" href="{% static 'my_community/topic_detail.css' %}">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% endblock %}
+
 </head>
 <body>
 <div class="container">
@@ -173,13 +174,21 @@
                     <div class="topic-actions-main">
                         {% if user.is_authenticated %}
                             <button class="btn-like" onclick="likeTopic()">
-                                <i class="far fa-thumbs-up"></i>
-                                <span id="like-count">{{ topic.likes.count }}</span>
+                                {% if user_reaction == 'like' %}
+                                    <i class="fas fa-thumbs-up"></i> <!-- Закрашенная иконка -->
+                                {% else %}
+                                    <i class="far fa-thumbs-up"></i> <!-- Незакрашенная иконка -->
+                                {% endif %}
+                                <span id="like-count">{{ topic.like }}</span>
                             </button>
 
                             <button class="btn-dislike" onclick="dislikeTopic()">
-                                <i class="far fa-thumbs-down"></i>
-                                <span id="dislike-count">{{ topic.dislikes.count }}</span>
+                                {% if user_reaction == 'dislike' %}
+                                    <i class="fas fa-thumbs-down"></i>
+                                {% else %}
+                                    <i class="far fa-thumbs-down"></i>
+                                {% endif %}
+                                <span id="dislike-count">{{ topic.dislike }}</span>
                             </button>
 
                             <button class="btn-bookmark" onclick="bookmarkTopic()">
@@ -412,5 +421,134 @@
         </div>
     {% endblock %}
 </div>
+{% block js %}
+    <script>
+        console.log('Скрипт загружен!');
+
+        // Проверка что функции доступны
+        console.log('likeTopic доступна:', typeof likeTopic);
+        console.log('dislikeTopic доступна:', typeof dislikeTopic);
+        console.log('voteComment доступна:', typeof voteComment);
+        // Конфигурация API
+        const API_BASE_URL = '/api'; // Измените если ваш API по другому пути
+
+        // Функция для обработки ошибок
+        function handleApiError(error, action) {
+            console.error(`Ошибка при ${action}:`, error);
+            alert(`Ошибка: ${error.response?.data?.error || error.message || 'Неизвестная ошибка'}`);
+        }
+
+        // Лайк/дизлайк темы
+        async function likeTopic() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/topics/{{ topic.id }}/like/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Обновляем счетчики на странице
+                document.getElementById('like-count').textContent = data.likes;
+                document.getElementById('dislike-count').textContent = data.dislikes;
+
+                // Меняем стиль кнопки (опционально)
+                const likeBtn = document.querySelector('.btn-like i');
+                const dislikeBtn = document.querySelector('.btn-dislike i');
+
+                likeBtn.className = 'fas fa-thumbs-up'; // Закрашенная иконка
+                dislikeBtn.className = 'far fa-thumbs-down'; // Незакрашенная иконка
+
+            } catch (error) {
+                handleApiError(error, 'лайке темы');
+            }
+        }
+
+        async function dislikeTopic() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/topics/{{ topic.id }}/dislike/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Обновляем счетчики на странице
+                document.getElementById('like-count').textContent = data.likes;
+                document.getElementById('dislike-count').textContent = data.dislikes;
+
+                // Меняем стиль кнопки (опционально)
+                const likeBtn = document.querySelector('.btn-like i');
+                const dislikeBtn = document.querySelector('.btn-dislike i');
+
+                likeBtn.className = 'far fa-thumbs-up';
+                dislikeBtn.className = 'fas fa-thumbs-down';
+
+            } catch (error) {
+                handleApiError(error, 'дизлайке темы');
+            }
+        }
+
+        // Лайк/дизлайк комментария
+        async function voteComment(commentId, action) {
+            try {
+                const url = action === 'like'
+                    ? `${API_BASE_URL}/comments/${commentId}/like/`
+                    : `${API_BASE_URL}/comments/${commentId}/dislike/`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Находим элемент комментария и обновляем счетчики
+                const commentElement = document.getElementById(`comment-${commentId}`);
+                if (commentElement) {
+                    // Обновляем счетчики лайков
+                    const upvoteCount = commentElement.querySelector('.upvote .vote-count');
+                    const downvoteCount = commentElement.querySelector('.downvote .vote-count');
+
+                    if (upvoteCount) upvoteCount.textContent = data.likes;
+                    if (downvoteCount) downvoteCount.textContent = data.dislikes;
+
+                    // Меняем стили кнопок
+                    const upvoteBtn = commentElement.querySelector('.upvote');
+                    const downvoteBtn = commentElement.querySelector('.downvote');
+
+                    if (action === 'like') {
+                        upvoteBtn.classList.add('active');
+                        downvoteBtn.classList.remove('active');
+                    } else {
+                        downvoteBtn.classList.add('active');
+                        upvoteBtn.classList.remove('active');
+                    }
+                }
+
+            } catch (error) {
+                handleApiError(error, `голосовании за комментарий (${action})`);
+            }
+        }
+    </script>
+{% endblock %}
 </body>
 </html>

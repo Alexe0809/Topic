@@ -11,67 +11,67 @@
 <header>
 
     <main>
-            <header class="toolbar">
-                <div class="toolbar-left">
-                    <div class="logo">
-                        <i class="fas fa-comments"></i>
-                        <span>Форум</span>
-                    </div>
-                    <nav class="main-nav">
-                        <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">
-                            <i class="fas fa-home"></i> Главная
+        <header class="toolbar">
+            <div class="toolbar-left">
+                <div class="logo">
+                    <i class="fas fa-comments"></i>
+                    <span>Форум</span>
+                </div>
+                <nav class="main-nav">
+                    <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Главная
+                    </a>
+                    <a href="#"><i class="fas fa-fire"></i> Популярное</a>
+                    <a href="#"><i class="fas fa-clock"></i> Недавнее</a>
+                    <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
+                </nav>
+            </div>
+
+            <div class="toolbar-right">
+                <div class="search-bar">
+                    <input type="text" placeholder="Поиск тем...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <a href="#" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Новая тема
                         </a>
-                        <a href="#"><i class="fas fa-fire"></i> Популярное</a>
-                        <a href="#"><i class="fas fa-clock"></i> Недавнее</a>
-                        <a href="#"><i class="fas fa-question-circle"></i> Помощь</a>
-                    </nav>
-                </div>
+                        <div class="user-menu">
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=4dabf7&color=fff"
+                                 alt="Аватар" class="avatar">
+                            <span>{{ user.username }}</span>
+                            <i class="fas fa-chevron-down"></i>
 
-                <div class="toolbar-right">
-                    <div class="search-bar">
-                        <input type="text" placeholder="Поиск тем...">
-                        <button><i class="fas fa-search"></i></button>
-                    </div>
-
-                    <div class="user-actions">
-                        {% if user.is_authenticated %}
-                            <a href="#" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Новая тема
-                            </a>
-                            <div class="user-menu">
-                                <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=4dabf7&color=fff"
-                                     alt="Аватар" class="avatar">
-                                <span>{{ user.username }}</span>
-                                <i class="fas fa-chevron-down"></i>
-
-                                <!-- Выпадающее меню пользователя -->
-                                <div class="dropdown-menu">
-                                    <a href="#" class="dropdown-item">
-                                        <i class="fas fa-user"></i> Профиль
-                                    </a>
-                                    <a href="#" class="dropdown-item">
-                                        <i class="fas fa-cog"></i> Настройки
-                                    </a>
-                                    <a href="#" class="dropdown-item">
-                                        <i class="fas fa-key"></i> Сменить пароль
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                    <!-- Форма для выхода -->
-                                    <form action="{% url 'logout' %}" method="post" class="dropdown-form">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item logout-btn">
-                                            <i class="fas fa-sign-out-alt"></i> Выйти
-                                        </button>
-                                    </form>
-                                </div>
+                            <!-- Выпадающее меню пользователя -->
+                            <div class="dropdown-menu">
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-user"></i> Профиль
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i> Настройки
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-key"></i> Сменить пароль
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <!-- Форма для выхода -->
+                                <form action="{% url 'logout' %}" method="post" class="dropdown-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item logout-btn">
+                                        <i class="fas fa-sign-out-alt"></i> Выйти
+                                    </button>
+                                </form>
                             </div>
-                        {% else %}
-                            <a href="{% url 'login' %}" class="btn btn-outline">Войти</a>
-                            <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline">Войти</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
+                    {% endif %}
                 </div>
-            </header>
+            </div>
+        </header>
 
 
         {% block sidebar %}
@@ -92,5 +92,8 @@
             <a href="#"><i class="fab fa-github"></i></a>
         </div>
     </footer>
+</header>
+{% block js %}
+{% endblock %}
 </body>
 </html>

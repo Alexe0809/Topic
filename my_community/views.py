@@ -10,6 +10,7 @@ from my_community.models import (
     EmailConfirmation,
     PasswordResetConfirmation,
     Topic,
+    TopicReaction,
 )
 
 
@@ -21,7 +22,14 @@ class TopicDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         slug = self.kwargs.get("slug")
+        user = self.request.user
         topic = get_object_or_404(Topic, slug=slug)
+        if user is not None:
+            try:
+                reaction = TopicReaction.objects.get(user=user, topic=topic)
+                context["user_reaction"] = reaction.reaction_type
+            except TopicReaction.DoesNotExist:
+                context["user_reaction"] = None
         context["topic"] = topic
         return context
 
