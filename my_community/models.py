@@ -134,6 +134,8 @@ class Topic(SlugGeneratorMixin, UUIDModel):
     categories = models.ManyToManyField(
         Category, related_name="topics", blank=True
     )
+    like = models.PositiveIntegerField(_("likes"), default=0)
+    dislike = models.PositiveIntegerField(_("dislikes"), default=0)
 
     def get_absolute_url(self):
         return reverse("topic", kwargs={"slug": self.slug})
