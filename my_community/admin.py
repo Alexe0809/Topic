@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from my_community.models import (
     Category,
+    Comment,
     EmailConfirmation,
     PasswordResetConfirmation,
     Topic,
@@ -184,6 +185,11 @@ class BaseConfirmationAdmin(admin.ModelAdmin):
     ]
 
     autocomplete_fields = ["user"]
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(EmailConfirmation)

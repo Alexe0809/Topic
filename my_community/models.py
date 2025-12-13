@@ -1,9 +1,10 @@
 import uuid
 from datetime import timedelta
+from typing import Any
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -13,42 +14,43 @@ from slugify import slugify
 
 class SlugGeneratorMixin:
     def save(self, *args, **kwargs):
-        priority_slug_fields = ["name", "username"]
-        slug_value = None
+        if not self.slug:
+            priority_slug_fields = ["name", "username"]
+            slug_value = None
 
-        for field in priority_slug_fields:
-            if hasattr(self, field):
-                value = getattr(self, field)
-                if value:
-                    slug_value = str(value)
+            for field in priority_slug_fields:
+                if hasattr(self, field):
+                    value = getattr(self, field)
+                    if value:
+                        slug_value = str(value)
+                        break
+
+            if not slug_value:
+                raise AttributeError("No valid field found for slug generation")
+
+            base_slug = slugify(slug_value)
+            if not base_slug:
+                base_slug = "item"
+
+            model_class = self.__class__
+            candidate = base_slug
+            counter = 1
+
+            while model_class.objects.filter(slug=candidate).exists():
+                candidate = f"{base_slug}-{counter}"
+                counter += 1
+                if counter > 100:
+                    candidate = f"{base_slug}-{uuid.uuid4().hex[:8]}"
                     break
 
-        if not slug_value:
-            raise AttributeError("No valid field found for slug generation")
+            self.slug = candidate
 
-        base_slug = slugify(slug_value)
-        if not base_slug:
-            base_slug = "item"
-
-        model_class = self.__class__
-        candidate = base_slug
-        counter = 1
-
-        while model_class.objects.filter(slug=candidate).exists():
-            candidate = f"{base_slug}-{counter}"
-            counter += 1
-            if counter > 100:
-                candidate = f"{base_slug}-{uuid.uuid4().hex[:8]}"
-                break
-
-        self.slug = candidate
-
-        if (
-            self.__class__.objects.filter(slug=self.slug)
-            .exclude(pk=self.pk)
-            .exists()
-        ):
-            self.slug = f"{self.slug}-{uuid.uuid4().hex[:8]}"
+            if (
+                self.__class__.objects.filter(slug=self.slug)
+                .exclude(pk=self.pk)
+                .exists()
+            ):
+                self.slug = f"{self.slug}-{uuid.uuid4().hex[:8]}"
 
         super().save(*args, **kwargs)
 
@@ -60,6 +62,21 @@ class UUIDModel(models.Model):
         editable=False,
         verbose_name=_("ID"),
     )
+
+    class Meta:
+        abstract = True
+
+
+class BaseReaction(UUIDModel):
+    class ReactionType(models.TextChoices):
+        LIKE = "like", "Лайк"
+        DISLIKE = "dislike", "Дизлайк"
+
+    reaction_type = models.CharField(
+        max_length=10, choices=ReactionType.choices, default=ReactionType.LIKE
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 
     class Meta:
         abstract = True
@@ -115,7 +132,57 @@ class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
     )
 
 
-class Topic(SlugGeneratorMixin, UUIDModel):
+class ReactionInterface:
+    def like_action(self, user: User):
+        pass
+
+    def dislike_action(self, user: User):
+        pass
+
+    def create_reaction(
+        self,
+        user: User,
+        reaction_type: BaseReaction.ReactionType,
+        reaction_model: Any,
+    ):
+        try:
+            if reaction_model == TopicReaction:
+                reaction = reaction_model.objects.get(user=user, topic=self)
+            else:
+                reaction = reaction_model.objects.get(user=user, comment=self)
+            if reaction.reaction_type == reaction_type:
+                reaction.delete()
+                if reaction_type == BaseReaction.ReactionType.LIKE:
+                    self.like = max(0, self.like - 1)
+                else:
+                    self.dislike = max(0, self.dislike - 1)
+            else:
+                reaction.reaction_type = reaction_type
+                reaction.save()
+                if reaction_type == BaseReaction.ReactionType.LIKE:
+                    self.like += 1
+                    self.dislike = max(0, self.dislike - 1)
+                else:
+                    self.dislike += 1
+                    self.like = max(0, self.like - 1)
+        except reaction_model.DoesNotExist:
+            if reaction_model == TopicReaction:
+                reaction_model.objects.create(
+                    user=user, topic=self, reaction_type=reaction_type
+                )
+            else:
+                reaction_model.objects.create(
+                    user=user, comment=self, reaction_type=reaction_type
+                )
+            if reaction_type == BaseReaction.ReactionType.LIKE:
+                self.like += 1
+            else:
+                self.dislike += 1
+
+        self.save()
+
+
+class Topic(ReactionInterface, SlugGeneratorMixin, UUIDModel):
     name = models.CharField(_("name"), max_length=100, null=False)
     description = models.CharField(
         _("description"),
@@ -140,26 +207,21 @@ class Topic(SlugGeneratorMixin, UUIDModel):
     def get_absolute_url(self):
         return reverse("topic", kwargs={"slug": self.slug})
 
+    @transaction.atomic
+    def like_action(self, user: User):
+        self.create_reaction(
+            user,
+            reaction_type=BaseReaction.ReactionType.LIKE,
+            reaction_model=TopicReaction,
+        )
 
-class Comment(UUIDModel):
-    description = models.CharField(
-        _("description"),
-        max_length=1024,
-        blank=True,
-    )
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
-    author = models.ForeignKey(User, on_delete=models.PROTECT)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
-    like = models.PositiveIntegerField(_("likes"), default=0)
-    dislike = models.PositiveIntegerField(_("dislikes"), default=0)
-    parent = models.ForeignKey(
-        "self",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="children",
-    )
+    @transaction.atomic
+    def dislike_action(self, user: User):
+        self.create_reaction(
+            user,
+            reaction_type=BaseReaction.ReactionType.DISLIKE,
+            reaction_model=TopicReaction,
+        )
 
 
 class BaseConfirmation(UUIDModel):
@@ -298,3 +360,84 @@ class EmailConfirmation(BaseConfirmation):
         self.save()
 
         return True
+
+
+class Comment(ReactionInterface, UUIDModel):
+    description = models.CharField(
+        _("description"),
+        max_length=1024,
+        blank=True,
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.PROTECT)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    like = models.PositiveIntegerField(_("likes"), default=0)
+    dislike = models.PositiveIntegerField(_("dislikes"), default=0)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+    )
+
+    @transaction.atomic
+    def like_action(self, user: User):
+        self.create_reaction(
+            user,
+            reaction_type=BaseReaction.ReactionType.LIKE,
+            reaction_model=CommentReaction,
+        )
+
+    @transaction.atomic
+    def dislike_action(self, user: User):
+        self.create_reaction(
+            user,
+            reaction_type=BaseReaction.ReactionType.DISLIKE,
+            reaction_model=CommentReaction,
+        )
+
+
+class CommentReaction(BaseReaction):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="comment_reaction",
+    )
+    comment = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, related_name="reaction"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "comment"], name="unique_user_comment_reaction"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["comment", "reaction_type"]),
+            models.Index(fields=["user", "comment"]),
+        ]
+
+
+class TopicReaction(BaseReaction):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="topic_reaction",
+    )
+    topic = models.ForeignKey(
+        Topic, on_delete=models.CASCADE, related_name="reaction"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "topic"], name="unique_user_topic_reaction"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["topic", "reaction_type"]),
+            models.Index(fields=["user", "topic"]),
+        ]
