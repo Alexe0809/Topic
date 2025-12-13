@@ -3,9 +3,8 @@ from django.shortcuts import get_object_or_404
 
 from my_community.models import Topic
 from my_community.tests.factories import (
+    CategoryFactory,
     TopicFactory,
-    TopicTestData,
-    TopicTestUpdateData,
 )
 
 COUNTER = 10
@@ -14,33 +13,37 @@ COUNTER = 10
 class TestTopics:
     @pytest.mark.django_db
     def test_topic_create(self):
-        topic = TopicFactory()
-        test_data = TopicTestData(1).data_list
-        topic = get_object_or_404(Topic, slug=topic.slug)
-        assert test_data.name == topic.name
-        assert test_data.slug == topic.slug
-        assert test_data.description == topic.description
+        # создаём категории и топик в базе
+        categories = [CategoryFactory() for _ in range(2)]
+        topic = TopicFactory(categories=categories)
+        # получаем объект из базы
+        topic_from_db = get_object_or_404(Topic, slug=topic.slug)
+        # проверяем поля
+        assert topic.name == topic_from_db.name
+        assert topic.slug == topic_from_db.slug
+        assert topic.description == topic_from_db.description
+        # проверяем категории
+        assert {c.name for c in categories} == {
+            c.name for c in topic_from_db.categories.all()
+        }
 
     @pytest.mark.django_db
     def test_topic_create_many(self):
-        topic_test_data = TopicTestData(COUNTER).data_list
-        for i in range(COUNTER):
-            topic = TopicFactory()
-            topic = get_object_or_404(Topic, slug=topic.slug)
-            assert topic_test_data[i].name == topic.name
-            assert topic_test_data[i].slug == topic.slug
-            assert topic_test_data[i].description == topic.description
+        categories = [CategoryFactory() for _ in range(2)]
+        topic = TopicFactory(categories=categories)
+        topic_from_db = get_object_or_404(Topic, slug=topic.slug)
+        assert topic.name == topic_from_db.name
+        assert topic.slug == topic_from_db.slug
+        assert topic.description == topic_from_db.description
 
     @pytest.mark.django_db
     def test_topic_update(self):
-        topic = TopicFactory()
-        test_data = TopicTestUpdateData().data
-        topic = get_object_or_404(Topic, slug=topic.slug)
-        topic.name = test_data.name
-        topic.description = test_data.description
-        topic.slug = test_data.slug
-        topic.save()
-        topic = get_object_or_404(Topic, slug=topic.slug)
-        assert test_data.name == topic.name
-        assert test_data.slug == topic.slug
-        assert test_data.description == topic.description
+        categories = [CategoryFactory() for _ in range(2)]
+        topic = TopicFactory(categories=categories)
+        topic_from_db = get_object_or_404(Topic, pk=topic.pk)
+        topic_from_db.name = "updated_user_name"
+        topic_from_db.description = "updated_user_description"
+        topic_from_db.save()
+        topic_from_db = get_object_or_404(Topic, pk=topic.pk)
+        assert "updated_user_name" == topic_from_db.name
+        assert "updated_user_description" == topic_from_db.description

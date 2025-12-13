@@ -2,29 +2,102 @@ import random
 
 import factory
 
-from my_community.models import Topic
+from my_community.models import Category, Topic, User
+
+# class UserListTestData:
+#     def __init__(self, item_count: int):
+#         self.item_count = item_count
+#
+#     @property
+#     def data_list(self):
+#         result_data = []
+#         data, exclude_fields = get_original_user_data()
+#         for i in range(self.item_count):
+#             for key, value in data.items():
+#                 if key not in exclude_fields:
+#                     data[key] = value + str(i)
+#         if len(data) == 1:
+#             return result_data[0]
+#         return result_data
+#
+#
+# class CategoryListTestData:
+#     def __init__(self, item_count: int):
+#         self.item_count = item_count
+#
+#     @property
+#     def data_list(self):
+#         result_data = []
+#         data, exclude_fields = get_original_user_data()
+#         for i in range(self.item_count):
+#             for key, value in data.items():
+#                 if key not in exclude_fields:
+#                     data[key] = value + str(i)
+#         if len(data) == 1:
+#             return result_data[0]
+#         return result_data
+#
+#
+# class TopicTestData:
+#     def __init__(self, item_count: int):
+#         self.item_count = item_count
+#
+#
+#
+#
+# class TopicTestUpdateData:
+#     @property
+#     def data(self):
+#         return Topic(name="new", description="new", slug="new")
+#
+#
+#
+#
+#
+# class TopicFactory(factory.django.DjangoModelFactory):
+#     class Meta:
+#         model = Topic
+#
+#     author = factory.Sequence(lambda n: UserFactory())
+#     name = factory.Sequence(lambda n: f"Topic {n}")
+#     slug = factory.Sequence(lambda n: f"topic-{n}")
+#     categories = [factory.Sequence(lambda n: CategoryFactory())]
+#     description = "test"
+#
+#
+#
+#     @property
+#     def data_list(self):
+#         data = []
+#         for i in range(10):
+#             author = factory.Sequence(lambda n: UserFactory())
+#             name = factory.Sequence(lambda n: f"Topic {n}")
+#             slug = factory.Sequence(lambda n: f"topic-{n}")
+#             categories = [factory.Sequence(lambda n: CategoryFactory())]
+#             description = "test"
+#             data.append(
+#                 Topic(name=name, slug=slug, description=description, author=author, )
+#             )
+#         if len(data) == 1:
+#             return data[0]
+#         return data
 
 
-class TopicTestData:
-    def __init__(self, item_count: int):
-        self.item_count = item_count
+class UserFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = User
 
-    @property
-    def data_list(self):
-        data = []
-        for i in range(self.item_count):
-            data.append(
-                Topic(name=f"Topic {i}", slug=f"topic-{i}", description="test")
-            )
-        if len(data) == 1:
-            return data[0]
-        return data
+    username = factory.Sequence(lambda n: f"test_user-{n}")
+    password = factory.Sequence(lambda n: f"test_pass1234{n}")
+    phone = factory.Sequence(lambda n: "+375292556867")
+    email = factory.Sequence(lambda n: f"t{n}est@gmail.com")
 
 
-class TopicTestUpdateData:
-    @property
-    def data(self):
-        return Topic(name="new", description="new", slug="new")
+class CategoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Category
+
+    name = factory.Sequence(lambda n: f"test-{n}")
 
 
 class TopicFactory(factory.django.DjangoModelFactory):
@@ -32,8 +105,16 @@ class TopicFactory(factory.django.DjangoModelFactory):
         model = Topic
 
     name = factory.Sequence(lambda n: f"Topic {n}")
-    slug = factory.Sequence(lambda n: f"topic-{n}")
     description = "test"
+    author = factory.SubFactory(UserFactory)  # ForeignKey на User
+
+    @factory.post_generation
+    def categories(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:  # передали категории при создании
+            for cat in extracted:
+                self.categories.add(cat)
 
 
 class UserTestData:
