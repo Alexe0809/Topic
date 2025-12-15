@@ -1,10 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение email</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .welcome-text {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #555;
+        }
+        .confirmation-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .code-box {
+            background-color: #f1f3f9;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 16px;
+            margin: 20px 0;
+            word-break: break-all;
+            border: 1px dashed #ccc;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            font-size: 20px;
+        }
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px 15px;
+            }
+            .button {
+                display: block;
+                margin: 20px auto;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">MyCommunity</div>
+            <h1>Подтверждение Email</h1>
+        </div>
 
+        <div class="content">
+            <p class="welcome-text">Здравствуйте, <strong>{{ username }}</strong>!</p>
+
+            <div class="confirmation-box">
+                <p>Спасибо за регистрацию на нашей платформе. Для завершения регистрации и активации вашего аккаунта, пожалуйста, подтвердите ваш email адрес.</p>
+            </div>
+
+            <p style="text-align: center; margin: 30px 0;">
+                <a href="{{ confirmation_url }}" class="button">
+                    Подтвердить Email
+                </a>
+            </p>
+
+            <p>Или скопируйте и вставьте следующую ссылку в адресную строку браузера:</p>
+
+            <div class="code-box">
+                {{ confirmation_url }}
+            </div>
+
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+                <strong>Важно:</strong> Ссылка действительна в течение 24 часов.<br>
+                Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>С уважением,<br><strong>Команда MyCommunity</strong></p>
+
+            <div class="social-links">
+                <a href="https://facebook.com/yourpage">📘</a>
+                <a href="https://twitter.com/yourpage">🐦</a>
+                <a href="https://instagram.com/yourpage">📷</a>
+                <a href="https://t.me/yourchannel">📱</a>
+            </div>
+
+            <p>
+                <a href="{{ site_url }}">Наш сайт</a> |
+                <a href="{{ site_url }}/help/">Помощь</a> |
+                <a href="{{ site_url }}/contact/">Контакты</a>
+            </p>
+
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                © 2024 MyCommunity. Все права защищены.<br>
+                Это письмо отправлено автоматически, пожалуйста, не отвечайте на него.
+            </p>
+        </div>
+    </div>
 </body>
 </html>
