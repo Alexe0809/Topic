@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,10 +29,10 @@ SECRET_KEY = (
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0"]
 
-# Application definition
-
+ADMIN_EMAIL = config("ADMIN_EMAIL")
+ADMIN_PASSWORD = config("ADMIN_PASSWORD")
 
 AUTH_USER_MODEL = "my_community.User"
 
@@ -142,3 +144,13 @@ LOGGING = {
         },
     },
 }
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ADMIN_EMAIL
+EMAIL_HOST_PASSWORD = ADMIN_PASSWORD
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

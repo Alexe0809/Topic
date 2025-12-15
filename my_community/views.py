@@ -12,6 +12,9 @@ from my_community.models import (
     Topic,
     TopicReaction,
 )
+from my_community.notifications.tasks import (
+    send_email_confirm,
+)
 
 
 class TopicDetailView(DetailView):
@@ -82,6 +85,7 @@ class CategoryView(TemplateView):
         context["topics"] = topics
         context["categories"] = categories
         context["cat_selected"] = categories.filter(slug=slug).first()
+
         return context
 
 
@@ -90,7 +94,13 @@ def registration_form(request):
         form = UserRegistration(request.POST)
         if form.is_valid():
             user = form.save()
-            EmailConfirmation.create_for_user(user)
+            email_conf = EmailConfirmation.create_for_user(user)
+            email_message_data = {
+                "email": user.email,
+                "url": email_conf.get_confirmation_url(),
+                "username": user.username,
+            }
+            send_email_confirm.delay(email_message_data)
             return redirect(reverse("home"))
 
     else:
