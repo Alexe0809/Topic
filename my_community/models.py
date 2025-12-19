@@ -300,11 +300,6 @@ class BaseConfirmation(UUIDModel):
         except cls.DoesNotExist:
             return None
 
-    def get_confirmation_url(self):
-        from django.urls import reverse
-
-        return reverse("confirm-email", kwargs={"token": self.token})
-
 
 class PasswordResetConfirmation(BaseConfirmation):
     user = models.ForeignKey(
@@ -331,6 +326,11 @@ class PasswordResetConfirmation(BaseConfirmation):
         self.save()
 
         return True
+
+    def get_confirmation_url(self):
+        from django.urls import reverse
+
+        return reverse("reset_password", kwargs={"token": self.token})
 
 
 class EmailConfirmation(BaseConfirmation):
@@ -360,6 +360,11 @@ class EmailConfirmation(BaseConfirmation):
         self.save()
 
         return True
+
+    def get_confirmation_url(self):
+        from django.urls import reverse
+
+        return reverse("confirm-email", kwargs={"token": self.token})
 
 
 class Comment(ReactionInterface, UUIDModel):
