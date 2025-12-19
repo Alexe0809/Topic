@@ -1,7 +1,8 @@
 import pytest
 from django.test import RequestFactory
 
-from my_community.tests.factories import TopicFactory
+from my_community.models import User
+from my_community.tests.factories import CategoryFactory, TopicFactory
 from my_community.views import IndexView, TopicDetailView
 
 
@@ -86,14 +87,21 @@ class TestIndexView:
 
         @pytest.mark.django_db
         def test_get_context_data(self):
-
-            topic = TopicFactory(slug="context-topic")
+            categories = [CategoryFactory() for _ in range(2)]
+            topic = TopicFactory(slug="context-topic", categories=categories)
+            self.user = User.objects.create_user(
+                username="gyugfs",
+                password="763fg4n4c7n4",
+                email="apdosdsij@gmail.com",
+            )
 
             request = self.factory.get(f"/topic/{topic.slug}/")
+            request.user = self.user
+
             view = self.view_class()
             view.request = request
             view.object = topic
-            view.kwargs = {"slug": "context-topic"}
+            view.kwargs = {"slug": topic.slug}
 
             context = view.get_context_data()
 
