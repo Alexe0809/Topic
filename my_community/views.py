@@ -4,16 +4,18 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import DetailView, TemplateView
 
-from my_community.forms import UserLogin, UserRegistration
+from my_community.forms import ResetPasswordForm, UserLogin, UserRegistration
 from my_community.models import (
     Category,
     EmailConfirmation,
     PasswordResetConfirmation,
     Topic,
     TopicReaction,
+    User,
 )
 from my_community.notifications.tasks import (
     send_email_confirm,
+    send_email_reset_password,
 )
 
 
@@ -153,3 +155,24 @@ def terms_page(request):
 
 def privacy_form(request):
     return render(request, "my_community/privacy.html")
+
+
+def reset_password_form_view(request):
+    if request.method == "POST":
+        form = ResetPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            user = get_object_or_404(User, email=email)
+            reset_password_obj = PasswordResetConfirmation.create_for_user(user)
+            email_message_data = {
+                "email": user.email,
+                "url": reset_password_obj.get_confirmation_url(),
+                "username": user.username,
+            }
+            send_email_reset_password.delay(email_message_data)
+            return redirect("login")
+    else:
+        form = ResetPasswordForm()
+    return render(
+        request, "my_community/reset_password_form.html", {"form": form}
+    )

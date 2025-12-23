@@ -37,3 +37,15 @@ class UserLogin(AuthenticationForm):
 
     class Meta:
         fields = ["username", "password"]
+
+
+class ResetPasswordForm(forms.Form):
+    email = forms.CharField(
+        label="Введите почту",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Почта",
+            }
+        ),
+    )
