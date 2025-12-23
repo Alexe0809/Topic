@@ -342,7 +342,7 @@ class PasswordResetConfirmation(BaseConfirmation):
     def get_confirmation_url(self):
         from django.urls import reverse
 
-        return reverse("reset_password", kwargs={"token": self.token})
+        return reverse("reset")
 
 
 class EmailConfirmation(BaseConfirmation):
