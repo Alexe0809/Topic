@@ -3,8 +3,6 @@ from datetime import timedelta
 from typing import Any
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.urls import reverse
@@ -12,6 +10,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from slugify import slugify
+
+from my_community.validators.model_validators import password_validator
 
 
 class SlugGeneratorMixin:
@@ -95,13 +95,6 @@ class Category(SlugGeneratorMixin, UUIDModel):
 
     def __str__(self):
         return self.name
-
-
-def password_validator(value):
-    try:
-        validate_password(value)
-    except ValidationError as e:
-        raise ValidationError(e.messages)
 
 
 class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
