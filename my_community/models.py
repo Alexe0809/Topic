@@ -110,9 +110,6 @@ class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
         unique=True,
         validators=[username_validator],
     )
-    password = models.CharField(
-        max_length=50, null=False, blank=False, validators=[password_validator]
-    )
     email = models.EmailField(unique=True, blank=False)
     slug = models.SlugField(unique=True, null=False)
     phone = PhoneNumberField(region=None, unique=False, blank=True, null=False)
@@ -381,7 +378,9 @@ class Comment(ReactionInterface, UUIDModel):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
     author = models.ForeignKey(User, on_delete=models.PROTECT)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    topic = models.ForeignKey(
+        Topic, on_delete=models.CASCADE, related_name="comments"
+    )
     like = models.PositiveIntegerField(_("likes"), default=0)
     dislike = models.PositiveIntegerField(_("dislikes"), default=0)
     parent = models.ForeignKey(

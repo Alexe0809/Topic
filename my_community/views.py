@@ -7,6 +7,7 @@ from django.views.generic import DetailView, TemplateView
 from my_community.forms import ResetPasswordForm, UserLogin, UserRegistration
 from my_community.models import (
     Category,
+    Comment,
     EmailConfirmation,
     PasswordResetConfirmation,
     Topic,
@@ -36,7 +37,18 @@ class TopicDetailView(DetailView):
             except TopicReaction.DoesNotExist:
                 context["user_reaction"] = None
         context["topic"] = topic
+        context["comments"] = self.object.comments.all()
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        description = request.POST.get("description")
+        if request.user.is_authenticated and description:
+            Comment.objects.create(
+                topic=self.object, author=request.user, description=description
+            )
+        # редирект на URL с правильным слешем
+        return redirect(self.object.get_absolute_url())
 
 
 class IndexView(TemplateView):
