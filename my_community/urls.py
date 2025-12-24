@@ -16,7 +16,7 @@ from .views import (
 urlpatterns = [
     path("", IndexView.as_view(), name="home"),
     path("category/<slug:slug>", CategoryView.as_view(), name="category"),
-    path("topic/<slug:slug>", TopicDetailView.as_view(), name="topic"),
+    path("topic/<slug:slug>/", TopicDetailView.as_view(), name="topic"),
     path("register/", registration_form, name="register"),
     path("login/", login_form, name="login"),
     path("reset_password/<str:token>", reset_password, name="reset_password"),

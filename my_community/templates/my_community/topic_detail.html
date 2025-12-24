@@ -227,7 +227,7 @@
                 <!-- Форма добавления комментария -->
                 {% if user.is_authenticated %}
                     <div class="comment-form-container">
-                        <form method="post" action="#" class="comment-form" id="comment-form">
+                        <form method="post" action="{% url 'topic' slug=topic.slug %}" class="comment-form" id="comment-form">
                             {% csrf_token %}
                             <div class="form-header">
                                 <img src="https://ui-avatars.com/api/?name={{ user.username|urlencode }}"
@@ -236,7 +236,7 @@
                             </div>
 
                             <div class="form-body">
-                                <textarea name="text"
+                                <textarea name="description"
                                           placeholder="Напишите ваш комментарий..."
                                           rows="4"
                                           required></textarea>
@@ -299,7 +299,7 @@
                             </div>
 
                             <div class="comment-body">
-                                {{ comment.text|linebreaks }}
+                                {{ comment.description|linebreaks }}
 
                                 {% if comment.image %}
                                     <div class="comment-image">
@@ -341,7 +341,7 @@
                             </div>
 
                             <!-- Ответы на комментарий -->
-                            {% for reply in comment.replies.all %}
+                            {% for reply in comment.children.all %}
                                 <div class="comment reply">
                                     <div class="comment-header">
                                         <div class="comment-author">
@@ -359,7 +359,7 @@
                                     </div>
 
                                     <div class="comment-body">
-                                        {{ reply.text|linebreaks }}
+                                        {{ reply.description|linebreaks }}
                                     </div>
                                 </div>
                             {% endfor %}
