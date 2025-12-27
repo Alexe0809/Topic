@@ -5,6 +5,7 @@ from .views import (
     ConfirmView,
     IndexView,
     TopicDetailView,
+    UserProfile,
     login_form,
     logout_view,
     privacy_form,
@@ -28,4 +29,5 @@ urlpatterns = [
     path(
         "confirmation/<str:token>", ConfirmView.as_view(), name="confirm-email"
     ),
+    path("profile/", UserProfile.as_view(), name="user_profile"),
 ]

@@ -117,6 +117,7 @@ class User(SlugGeneratorMixin, UUIDModel, AbstractUser):
     slug = models.SlugField(unique=True, null=False)
     phone = PhoneNumberField(region=None, unique=False, blank=True, null=False)
     is_email_verified = models.BooleanField(default=False)
+    description = models.CharField(max_length=350, blank=True)
     image = models.ImageField(
         null=True, blank=True, upload_to="static/avatars/"
     )

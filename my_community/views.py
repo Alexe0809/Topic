@@ -1,8 +1,16 @@
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib import messages
+from django.contrib.auth import (
+    authenticate,
+    login,
+    logout,
+    update_session_auth_hash,
+)
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-from django.views.generic import DetailView, TemplateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import DetailView, TemplateView, UpdateView
 
 from my_community.forms import ResetPasswordForm, UserLogin, UserRegistration
 from my_community.models import (
@@ -89,6 +97,50 @@ class CategoryView(TemplateView):
         context["cat_selected"] = categories.filter(slug=slug).first()
 
         return context
+
+
+class UserProfile(LoginRequiredMixin, UpdateView):
+    model = User
+    template_name = "my_community/user_profile.html"
+    success_url = reverse_lazy("user_profile")
+    fields = [
+        "email",
+        "phone",
+        "username",
+        "first_name",
+        "last_name",
+        "image",
+        "description",
+    ]
+    login_url = "/login/"  # путь к твоему логину
+    redirect_field_name = "next"
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        liked_topics = Topic.objects.filter(reaction__user=self.request.user)
+        paginator = Paginator(liked_topics, 10)
+        page_number = self.request.GET.get("page")
+        context["liked_topics_page"] = paginator.get_page(page_number)
+        context["password_form"] = PasswordChangeForm(user=self.request.user)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if "new_password1" in request.POST:
+            form = PasswordChangeForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)  # чтобы не разлогинило
+                messages.success(request, "Пароль успешно изменён!")
+                return redirect("user_profile")
+            else:
+                context = self.get_context_data()
+                context["password_form"] = form
+                return self.render_to_response(context)
+        return super().post(request, *args, **kwargs)
 
 
 def registration_form(request):

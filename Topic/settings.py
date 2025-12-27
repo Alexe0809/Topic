@@ -29,7 +29,7 @@ SECRET_KEY = (
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0"]
+ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1"]
 
 ADMIN_EMAIL = config("ADMIN_EMAIL")
 ADMIN_PASSWORD = config("ADMIN_PASSWORD")
@@ -154,3 +154,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = ADMIN_EMAIL
 EMAIL_HOST_PASSWORD = ADMIN_PASSWORD
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+LOGIN_URL = "/login/"  # URL view для логина
+LOGIN_REDIRECT_URL = "/profile/"
