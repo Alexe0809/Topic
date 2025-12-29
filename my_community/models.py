@@ -189,11 +189,7 @@ class ReactionInterface:
 
 class Topic(ReactionInterface, SlugGeneratorMixin, UUIDModel):
     name = models.CharField(_("name"), max_length=100, null=False)
-    description = models.CharField(
-        _("description"),
-        max_length=1024,
-        blank=True,
-    )
+    description = models.TextField(_("description"))
     slug = models.SlugField(_("slug"), max_length=250, unique=True)
     is_pinned = models.BooleanField(_("is pinned"), default=False)
     is_closed = models.BooleanField(_("is closed"), default=False)
