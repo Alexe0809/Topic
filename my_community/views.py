@@ -1,10 +1,17 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import DetailView, TemplateView
 
-from my_community.forms import ResetPasswordForm, UserLogin, UserRegistration
+from my_community.forms import (
+    ResetPasswordForm,
+    TopicForm,
+    UserLogin,
+    UserRegistration,
+)
 from my_community.models import (
     Category,
     EmailConfirmation,
@@ -175,4 +182,54 @@ def reset_password_form_view(request):
         form = ResetPasswordForm()
     return render(
         request, "my_community/reset_password_form.html", {"form": form}
+    )
+
+
+@login_required
+def topic_create(request):
+    if request.method == "POST":
+        form = TopicForm(request.POST)
+        if form.is_valid():
+            topic = form.save(commit=False)
+            topic.author = request.user
+
+            topic.save()
+
+            selected_categories = form.cleaned_data.get("categories")
+            if selected_categories:
+                topic.categories.add(*selected_categories)
+
+            new_category_name = form.cleaned_data.get("new_category")
+            if new_category_name and new_category_name.strip():
+                new_category_name = new_category_name.strip()
+
+                existing_category = Category.objects.filter(
+                    name__iexact=new_category_name
+                ).first()
+
+                if existing_category:
+                    topic.categories.add(existing_category)
+                else:
+                    category, created = Category.objects.get_or_create(
+                        name=new_category_name,
+                        defaults={
+                            "description": f'Категория "{new_category_name}"'
+                        },
+                    )
+                    topic.categories.add(category)
+
+            messages.success(request, "Тема успешно создана!")
+            return redirect(topic.get_absolute_url())
+    else:
+        form = TopicForm()
+
+    categories = Category.objects.all().order_by("name")
+
+    return render(
+        request,
+        "my_community/topic_create.html",
+        {
+            "form": form,
+            "categories": categories,
+        },
     )
