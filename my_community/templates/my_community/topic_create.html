@@ -1,0 +1,413 @@
+{% extends 'my_community/base.html' %}
+{% load static %}
+
+{% block title %}Форум | Создать новую тему{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'my_community/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Стили для формы создания темы */
+        .create-topic-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .create-topic-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .form-section-title i {
+            color: #4dabf7;
+        }
+
+        .required {
+            color: #e53e3e;
+            margin-left: 5px;
+        }
+
+        .topic-name-input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .topic-name-input:focus {
+            outline: none;
+            border-color: #4dabf7;
+            box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+        }
+
+        .topic-description-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        .topic-description-textarea:focus {
+            outline: none;
+            border-color: #4dabf7;
+            box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+        }
+
+        .categories-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .category-checkbox {
+            display: none;
+        }
+
+        .category-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .category-checkbox:checked + .category-label {
+            background-color: #e7f2ff;
+            border-color: #4dabf7;
+            color: #4dabf7;
+            font-weight: 600;
+        }
+
+        .category-label:hover {
+            background-color: #f1f5f9;
+        }
+
+        .new-category-input {
+            margin-top: 20px;
+        }
+
+        .new-category-input input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .new-category-input input:focus {
+            outline: none;
+            border-color: #4dabf7;
+            box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+        }
+
+        .new-category-hint {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .character-counter {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .character-counter.warning {
+            color: #f6ad55;
+        }
+
+        .character-counter.error {
+            color: #e53e3e;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .form-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .form-status {
+            font-size: 0.9rem;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="create-topic-container">
+    <div class="create-topic-card">
+        <form method="post" action="{% url 'topic_create' %}" id="topic-form">
+            {% csrf_token %}
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-heading"></i>
+                    <span>Название темы</span>
+                    <span class="required">*</span>
+                </div>
+                <input type="text"
+                       name="name"
+                       class="topic-name-input"
+                       placeholder="Введите название темы..."
+                       required
+                       maxlength="100"
+                       value="{{ form.name.value|default:'' }}">
+                <div class="character-counter" id="name-counter">
+                    <span>Осталось символов: <span id="name-remaining">100</span></span>
+                </div>
+                {% if form.name.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.name.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-align-left"></i>
+                    <span>Описание темы</span>
+                    <span class="required">*</span>
+                </div>
+
+                <textarea name="description"
+                          class="topic-description-textarea"
+                          placeholder="Подробно опишите вашу тему..."
+                          required
+                          id="description-input">{{ form.description.value|default:'' }}</textarea>
+
+                <div class="character-counter" id="description-counter">
+                    <span>Символов: <span id="description-length">0</span> (минимум 10)</span>
+                </div>
+
+                {% if form.description.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.description.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-folder"></i>
+                    <span>Категории</span>
+                </div>
+
+                <p style="color: #4a5568; margin-bottom: 15px; font-size: 0.95rem;">
+                    Выберите одну или несколько категорий для вашей темы:
+                </p>
+
+                <div class="categories-container">
+                    {% for category in categories %}
+                        <div>
+                            <input type="checkbox"
+                                   name="categories"
+                                   value="{{ category.id }}"
+                                   id="category-{{ category.id }}"
+                                   class="category-checkbox"
+                                   {% if category.id in form.categories.value %}checked{% endif %}>
+                            <label for="category-{{ category.id }}" class="category-label">
+                                <i class="fas fa-folder"></i>
+                                <span>{{ category.name }}</span>
+                            </label>
+                        </div>
+                    {% empty %}
+                        <p style="color: #718096;">Нет доступных категорий</p>
+                    {% endfor %}
+                </div>
+
+                <div class="new-category-input">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                        <i class="fas fa-plus-circle" style="color: #4dabf7;"></i>
+                        <span style="font-weight: 600;">Добавить новую категорию:</span>
+                    </div>
+                    <input type="text"
+                           name="new_category"
+                           placeholder="Введите название новой категории..."
+                           id="new-category-input"
+                           value="{{ form.new_category.value|default:'' }}">
+                    <div class="new-category-hint">
+                        <span>Категория будет создана автоматически при сохранении темы</span>
+                    </div>
+                </div>
+
+                {% if form.categories.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.categories.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-buttons">
+                <div class="form-status" id="form-status">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Все обязательные поля должны быть заполнены</span>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <a href="{% url 'home' %}" class="btn btn-outline" style="color: #4a5568; border-color: #cbd5e0;">
+                        <i class="fas fa-times"></i>
+                        Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        Создать тему
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    // Элементы формы
+    const nameInput = document.querySelector('.topic-name-input');
+    const descriptionInput = document.getElementById('description-input');
+    const nameCounter = document.getElementById('name-remaining');
+    const descriptionLengthElement = document.getElementById('description-length');
+    const newCategoryInput = document.getElementById('new-category-input');
+    const formStatus = document.getElementById('form-status');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Счетчик символов для названия
+    nameInput.addEventListener('input', function() {
+        const remaining = 100 - this.value.length;
+        nameCounter.textContent = remaining;
+
+        if (remaining < 20) {
+            nameCounter.parentElement.className = 'character-counter warning';
+        } else {
+            nameCounter.parentElement.className = 'character-counter';
+        }
+
+        updateFormStatus();
+    });
+
+    // Счетчик символов для описания
+    descriptionInput.addEventListener('input', function() {
+        const length = this.value.length;
+        descriptionLengthElement.textContent = length;
+
+        if (length < 10) {
+            descriptionLengthElement.parentElement.className = 'character-counter error';
+        } else if (length > 5000) {
+            descriptionLengthElement.parentElement.className = 'character-counter warning';
+        } else {
+            descriptionLengthElement.parentElement.className = 'character-counter';
+        }
+
+        updateFormStatus();
+    });
+
+    // Обновление статуса формы
+    function updateFormStatus() {
+        const nameValid = nameInput.value.trim().length >= 3;
+        const descriptionValid = descriptionInput.value.trim().length >= 10;
+
+        if (nameValid && descriptionValid) {
+            formStatus.innerHTML = '<i class="fas fa-check-circle" style="color: #38a169;"></i><span>Форма готова к отправке</span>';
+        } else {
+            formStatus.innerHTML = '<i class="fas fa-info-circle"></i><span>Заполните все обязательные поля</span>';
+        }
+    }
+
+    // Валидация перед отправкой
+    document.getElementById('topic-form').addEventListener('submit', function(e) {
+        const name = nameInput.value.trim();
+        const description = descriptionInput.value.trim();
+
+        if (name.length < 3) {
+            e.preventDefault();
+            alert('Название темы должно содержать минимум 3 символа');
+            nameInput.focus();
+            return;
+        }
+
+        if (description.length < 10) {
+            e.preventDefault();
+            alert('Описание темы должно содержать минимум 10 символов');
+            descriptionInput.focus();
+            return;
+        }
+
+        // Показываем индикатор загрузки
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
+        submitBtn.disabled = true;
+    });
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализируем счетчики символов
+        nameInput.dispatchEvent(new Event('input'));
+        descriptionInput.dispatchEvent(new Event('input'));
+
+        // Проверка существования новой категории
+        newCategoryInput.addEventListener('input', function() {
+            if (this.value.trim()) {
+                const categoryLabels = document.querySelectorAll('.category-label span');
+                let exists = false;
+
+                categoryLabels.forEach(label => {
+                    if (label.textContent.toLowerCase() === this.value.trim().toLowerCase()) {
+                        exists = true;
+                    }
+                });
+
+                if (exists) {
+                    this.style.borderColor = '#f6ad55';
+                } else {
+                    this.style.borderColor = '#e2e8f0';
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
