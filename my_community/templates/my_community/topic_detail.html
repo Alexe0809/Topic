@@ -1,5 +1,6 @@
 {% extends 'my_community/base.html' %}
 {% load static %}
+{% load markdown_tags %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -155,7 +156,8 @@
             <!-- Содержимое темы -->
             <article class="topic-body">
                 <div class="topic-description">
-                    {{ topic.description|linebreaks }}
+                    {{ topic.description|markdown_to_html }}
+
                 </div>
 
                 {% if topic.image %}
