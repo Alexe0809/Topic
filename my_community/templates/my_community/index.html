@@ -70,7 +70,9 @@
                 <div class="content-actions">
                     <button class="btn btn-outline"><i class="fas fa-filter"></i> Фильтр</button>
                     <button class="btn btn-outline"><i class="fas fa-sort"></i> Сортировка</button>
-                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Новая тема</button>
+                       <a href="{% url 'topic_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Новая тема
+                        </a>
                 </div>
             </div>
             <div class="topics-list">
@@ -104,7 +106,7 @@
                     </a>
                 {% empty %}
                     <div class="no-topics">
-                        <p>Темы пока не созданы. <a href="#">Создайте первую!</a></p>
+                        <p>Темы пока не созданы. <a href="{% url 'topic_create' %}">Создайте первую!</a></p>
                     </div>
                 {% endfor %}
             </div>
