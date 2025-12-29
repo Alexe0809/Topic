@@ -204,6 +204,7 @@ class Topic(ReactionInterface, SlugGeneratorMixin, UUIDModel):
     )
     like = models.PositiveIntegerField(_("likes"), default=0)
     dislike = models.PositiveIntegerField(_("dislikes"), default=0)
+    views = models.PositiveIntegerField(_("views"), default=0)
 
     def get_absolute_url(self):
         return reverse("topic", kwargs={"slug": self.slug})

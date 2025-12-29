@@ -97,7 +97,7 @@
                                     <div class="topic-stats">
                                         <span><i
                                                 class="far fa-comment"></i> {{ topic.comments.count|default:"0" }}</span>
-                                        <span><i class="far fa-eye"></i> {{ topic.views|default:"0" }}</span>
+                                        <span><i class="far fa-eye"></i> {{ topic.views }}</span>
                                         <span><i class="far fa-clock"></i> {{ topic.created_at|timesince }} назад</span>
                                     </div>
                                 </div>

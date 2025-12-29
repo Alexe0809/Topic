@@ -42,6 +42,8 @@ class TopicDetailView(DetailView):
                 context["user_reaction"] = reaction.reaction_type
             except TopicReaction.DoesNotExist:
                 context["user_reaction"] = None
+        topic.views += 1  # Нужно будет сделать нормально(чтобы нельзя было крутить просмотры)
+        topic.save()
         context["topic"] = topic
         return context
 
