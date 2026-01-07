@@ -20,10 +20,7 @@ from my_community.models import (
     TopicReaction,
     User,
 )
-from my_community.notifications.tasks import (
-    send_email_confirm,
-    send_email_reset_password,
-)
+from my_community.notifications.tasks import send_email
 
 
 class TopicDetailView(DetailView):
@@ -112,7 +109,7 @@ def registration_form(request):
                 "url": email_conf.get_confirmation_url(),
                 "username": user.username,
             }
-            send_email_confirm.delay(email_message_data)
+            send_email.delay(email_message_data, "confirmation")
             return redirect(reverse("home"))
 
     else:
@@ -179,7 +176,7 @@ def reset_password_form_view(request):
                 "url": reset_password_obj.get_confirmation_url(),
                 "username": user.username,
             }
-            send_email_reset_password.delay(email_message_data)
+            send_email.delay(email_message_data, "reset_password")
             return redirect("login")
     else:
         form = ResetPasswordForm()

@@ -29,10 +29,11 @@ SECRET_KEY = (
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0"]
+ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1"]
 
 ADMIN_EMAIL = config("ADMIN_EMAIL")
 ADMIN_PASSWORD = config("ADMIN_PASSWORD")
+FRONTEND_URL = config("FRONTEND_URL")
 
 AUTH_USER_MODEL = "my_community.User"
 

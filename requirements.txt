@@ -62,3 +62,6 @@ tzlocal==5.3.1
 vine==5.1.0
 virtualenv==20.35.4
 wcwidth==0.2.14
+
+Markdown~=3.10
+pydantic~=2.12.5
