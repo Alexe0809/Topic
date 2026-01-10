@@ -14,6 +14,7 @@ from django.views.generic import DetailView, TemplateView, UpdateView
 
 from my_community.forms import ResetPasswordForm, UserLogin, UserRegistration
 from my_community.models import (
+    BaseReaction,
     Category,
     EmailConfirmation,
     PasswordResetConfirmation,
@@ -120,16 +121,25 @@ class UserProfile(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        liked_topics = Topic.objects.filter(reaction__user=self.request.user)
+        liked_topics = Topic.objects.filter(
+            reaction__user=self.request.user,
+            reaction__reaction_type=BaseReaction.ReactionType.LIKE,
+        )
         paginator = Paginator(liked_topics, 10)
         page_number = self.request.GET.get("page")
+        context["created_topics"] = Topic.objects.filter(
+            author=self.request.user
+        )
         context["liked_topics_page"] = paginator.get_page(page_number)
         context["password_form"] = PasswordChangeForm(user=self.request.user)
         return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if "new_password1" in request.POST:
+        if (
+            "new_password1" in request.POST
+        ):  # new_password1 это поле формы PasswordChangeForm,
+            # если оно присутствует в POST запросе, значит запрос на смену пароля
             form = PasswordChangeForm(user=request.user, data=request.POST)
             if form.is_valid():
                 user = form.save()

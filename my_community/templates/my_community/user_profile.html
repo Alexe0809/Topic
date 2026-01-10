@@ -1,7 +1,6 @@
 {% extends 'my_community/base.html' %}
 {% load static %}
 
-
 {% block title %}Форум | {{ user.username }} - Профиль{% endblock %}
 
 {% block extra_css %}
@@ -31,7 +30,7 @@
         }
 
         /* =========================
-           ШАПКА ПРОФИЛЯ (ОБНОВЛЕННАЯ)
+           ШАПКА ПРОФИЛЯ
         ========================= */
         .profile-header {
             background: linear-gradient(135deg, #0f172a, #1e293b 45%, #4dabf7);
@@ -72,9 +71,7 @@
             }
         }
 
-        /* =========================
-           АВАТАР
-        ========================= */
+        /* Аватар */
         .profile-avatar-container {
             position: relative;
             flex-shrink: 0;
@@ -122,9 +119,7 @@
             animation: pulse 2s infinite;
         }
 
-        /* =========================
-           ИНФОРМАЦИЯ В ШАПКЕ
-        ========================= */
+        /* Информация в шапке */
         .profile-info {
             flex: 1;
         }
@@ -176,9 +171,7 @@
             font-size: 0.9rem;
         }
 
-        /* =========================
-           СТАТИСТИКА В ШАПКЕ
-        ========================= */
+        /* Статистика в шапке */
         .profile-stats-header {
             display: flex;
             gap: 32px;
@@ -214,9 +207,7 @@
             color: rgba(255, 255, 255, .9);
         }
 
-        /* =========================
-           ОСНОВНОЙ КОНТЕНТ
-        ========================= */
+        /* Основной контент */
         .profile-content {
             display: grid;
             grid-template-columns: 1fr 340px;
@@ -230,12 +221,11 @@
             }
         }
 
-        /* =========================
-           КАРТОЧКИ
-        ========================= */
+        /* Карточки */
         .settings-section,
         .sidebar-section,
         .password-change-section,
+        .created-topics-section,
         .liked-topics-section {
             background: #fff;
             border-radius: 22px;
@@ -257,9 +247,7 @@
             color: var(--profile-primary);
         }
 
-        /* =========================
-           ФОРМА НАСТРОЕК
-        ========================= */
+        /* Форма настроек */
         .settings-form {
             display: flex;
             flex-direction: column;
@@ -469,9 +457,7 @@
             color: var(--profile-danger);
         }
 
-        /* =========================
-           СТАТУС ВЕРИФИКАЦИИ (ОБНОВЛЕННЫЙ)
-        ========================= */
+        /* Статус верификации */
         .verification-status {
             margin-top: 30px;
             padding: 28px;
@@ -562,11 +548,9 @@
             color: var(--profile-warning);
         }
 
-        /* =========================
-           КНОПКА ПОДТВЕРЖДЕНИЯ EMAIL (ОБНОВЛЕННАЯ)
-        ========================= */
+        /* Кнопка подтверждения email */
         .verify-email-btn {
-            background: linear-gradient(135deg, #4dabf7, #42a1f5, #38a6f3); /* разные оттенки синего */
+            background: linear-gradient(135deg, #4dabf7, #42a1f5, #38a6f3);
             color: #fff !important;
             border: none !important;
             padding: 12px 28px !important;
@@ -587,12 +571,11 @@
         }
 
         .verify-email-btn:hover {
-            background: linear-gradient(135deg, #38a6f3, #42a1f5, #4dabf7); /* плавный hover в обратном порядке */
+            background: linear-gradient(135deg, #38a6f3, #42a1f5, #4dabf7);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25),
             0 0 0 1px rgba(255, 255, 255, 0.15) inset !important;
             transform: translateY(-2px);
         }
-
 
         .verify-email-btn::before {
             content: '';
@@ -607,10 +590,10 @@
 
         .verify-email-btn:hover {
             transform: translateY(-3px) scale(1.02) !important;
-            box-shadow: 0 12px 30px rgba(34, 149, 255, 0.4), /* мягкая синяя тень */ 0 4px 10px rgba(0, 0, 0, 0.1) !important;
-            background: linear-gradient(135deg, #38a6f3, #4dabf7) !important; /* синий градиент */
+            box-shadow: 0 12px 30px rgba(34, 149, 255, 0.4),
+            0 4px 10px rgba(0, 0, 0, 0.1) !important;
+            background: linear-gradient(135deg, #38a6f3, #4dabf7) !important;
         }
-
 
         .verify-email-btn:hover::before {
             left: 100%;
@@ -635,9 +618,7 @@
             background: linear-gradient(135deg, #10b981, #059669) !important;
         }
 
-        /* =========================
-           СТОЛБЕЦ С ДЕЙСТВИЯМИ
-        ========================= */
+        /* Столбец с действиями */
         .sidebar-title {
             display: flex;
             align-items: center;
@@ -812,15 +793,14 @@
             font-weight: 500;
         }
 
-        /* =========================
-           ЛАЙКНУТЫЕ ТЕМЫ
-        ========================= */
-        .liked-topics-section {
+        /* СОЗДАННЫЕ ТЕМЫ */
+        .created-topics-section {
             background: var(--profile-card-bg);
             border-radius: 22px;
             padding: 30px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, .08);
             margin-top: 30px;
+            border: 2px solid rgba(102, 126, 234, 0.15);
         }
 
         .section-header {
@@ -830,14 +810,14 @@
             margin-bottom: 25px;
         }
 
-        .liked-count-badge {
-            background: linear-gradient(135deg, var(--profile-primary), var(--profile-secondary));
+        .created-count-badge {
+            background: linear-gradient(135deg, #667eea, #4dabf7);
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.95rem;
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(77, 171, 247, 0.3);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
         .topics-grid {
@@ -863,7 +843,7 @@
 
         .topic-card-mini:hover {
             border-color: var(--profile-primary);
-            transform: translateY(-3px);
+            transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, .1);
         }
 
@@ -905,9 +885,10 @@
 
         .topic-stats-mini {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             font-size: 0.85rem;
             color: var(--profile-text-secondary);
+            flex-wrap: wrap;
         }
 
         .topic-stats-mini span {
@@ -917,9 +898,76 @@
             font-weight: 500;
         }
 
-        /* =========================
-           ФОРМА СМЕНЫ ПАРОЛЯ
-        ========================= */
+        .topic-status-mini {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .topic-status-mini.open {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--profile-success);
+        }
+
+        .topic-status-mini.closed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--profile-danger);
+        }
+
+        .view-more-container {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--profile-border);
+        }
+
+        .view-more-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--profile-primary), var(--profile-secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .view-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(77, 171, 247, 0.3);
+            background: linear-gradient(135deg, var(--profile-secondary), var(--profile-primary));
+        }
+
+        /* Лайкнутые темы */
+        .liked-topics-section {
+            background: var(--profile-card-bg);
+            border-radius: 22px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, .08);
+            margin-top: 30px;
+        }
+
+        .liked-count-badge {
+            background: linear-gradient(135deg, var(--profile-primary), var(--profile-secondary));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(77, 171, 247, 0.3);
+        }
+
+        /* Форма смены пароля */
         .password-change-section {
             background: linear-gradient(135deg, #f8fafc, #eef2ff);
             border-radius: 22px;
@@ -977,9 +1025,7 @@
             border-top: 2px solid rgba(77, 171, 247, 0.1);
         }
 
-        /* =========================
-           КНОПКИ ДЕЙСТВИЙ
-        ========================= */
+        /* Кнопки действий */
         .form-actions {
             display: flex;
             gap: 15px;
@@ -989,9 +1035,7 @@
             margin-top: 25px;
         }
 
-        /* =========================
-           ПАГИНАЦИЯ
-        ========================= */
+        /* Пагинация */
         .pagination-wrapper {
             display: flex;
             justify-content: space-between;
@@ -1062,9 +1106,7 @@
             font-weight: 500;
         }
 
-        /* =========================
-           УВЕДОМЛЕНИЯ
-        ========================= */
+        /* Уведомления */
         .notification {
             position: fixed;
             top: 30px;
@@ -1137,9 +1179,7 @@
             color: var(--profile-text-primary);
         }
 
-        /* =========================
-           ПУСТОЕ СОСТОЯНИЕ
-        ========================= */
+        /* Пустое состояние */
         .empty-state {
             text-align: center;
             padding: 60px 30px;
@@ -1167,116 +1207,7 @@
             line-height: 1.6;
         }
 
-        /* =========================
-           МОДАЛЬНОЕ ОКНО
-        ========================= */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s ease;
-            backdrop-filter: blur(8px);
-        }
-
-        .modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 450px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            animation: modalSlideIn 0.4s ease-out;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, .5);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--profile-border);
-        }
-
-        .modal-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--profile-text-primary);
-            font-size: 1.5rem;
-            margin: 0;
-            font-weight: 700;
-        }
-
-        .modal-title i {
-            color: var(--profile-primary);
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--profile-text-secondary);
-            cursor: pointer;
-            padding: 5px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .close-modal:hover {
-            background: rgba(0, 0, 0, 0.05);
-            color: var(--profile-text-primary);
-        }
-
-        .modal-body {
-            padding: 20px 0;
-        }
-
-        .modal-body .form-group {
-            margin-bottom: 25px;
-        }
-
-        .modal-body label {
-            display: block;
-            margin-bottom: 10px;
-            color: var(--profile-text-primary);
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: flex-end;
-            margin-top: 30px;
-            padding-top: 25px;
-            border-top: 2px solid var(--profile-border);
-        }
-
-        /* =========================
-           АНИМАЦИИ
-        ========================= */
+        /* Анимации */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -1296,23 +1227,6 @@
             50% {
                 transform: scale(1.05);
                 box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
-            }
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-60px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        @keyframes shine {
-            to {
-                left: 100%;
             }
         }
     </style>
@@ -1370,7 +1284,7 @@
 
                     <div class="profile-stats-header">
                         <div class="stat-item-header">
-                            <span class="stat-number">{{ user.topics.count|default:0 }}</span>
+                            <span class="stat-number">{{ created_topics.count }}</span>
                             <span class="stat-label">Тем</span>
                         </div>
                         <div class="stat-item-header">
@@ -1637,6 +1551,71 @@
                     </form>
                 </div>
 
+                <!-- СОЗДАННЫЕ ТЕМЫ -->
+                <div class="created-topics-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-pen-fancy"></i> Созданные темы
+                        </h2>
+                        <span class="created-count-badge">{{ created_topics.count }}</span>
+                    </div>
+
+                    {% if created_topics %}
+                        <div class="topics-grid">
+                            {% for topic in created_topics|slice:":12" %}
+                                <div class="topic-card-mini">
+                                    <a href="{% url 'topic' topic.slug %}">
+                                        <div class="topic-meta-mini">
+                                            <span class="topic-category-mini">{{ topic.category.name }}</span>
+                                            <span class="topic-date-mini">{{ topic.created_at|date:"d.m.Y" }}</span>
+                                        </div>
+                                        <h3 class="topic-title-mini">{{ topic.name|truncatechars:80 }}</h3>
+                                        <div class="topic-stats-mini">
+                                            <span>
+                                                <i class="far fa-thumbs-up"></i> {{ topic.likes_count|default:0 }}
+                                            </span>
+                                            <span>
+                                                <i class="far fa-comment"></i> {{ topic.comments.count|default:0 }}
+                                            </span>
+                                            <span>
+                                                <i class="far fa-eye"></i> {{ topic.views|default:0 }}
+                                            </span>
+                                            <span class="topic-status-mini {% if topic.is_closed %}closed{% else %}open{% endif %}">
+                                                {% if topic.is_closed %}
+                                                    <i class="fas fa-lock"></i> Закрыта
+                                                {% else %}
+                                                    <i class="fas fa-lock-open"></i> Открыта
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if created_topics.count > 12 %}
+                            <div class="view-more-container">
+                                <a href="{% url 'home' %}" class="view-more-btn">
+                                    <i class="fas fa-list"></i> Все темы
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-pen-fancy"></i>
+                            </div>
+                            <h3 class="empty-state-title">Нет созданных тем</h3>
+                            <p class="empty-state-text">
+                                Вы еще не создавали тем на форуме. Создайте первую тему и поделитесь своими мыслями!
+                            </p>
+                            <button class="btn btn-primary" id="createTopicBtn">
+                                <i class="fas fa-plus-circle"></i> Создать тему
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
                 <!-- Лайкнутые темы -->
                 <div class="liked-topics-section">
                     <div class="section-header">
@@ -1740,8 +1719,14 @@
                         <a href="{% url 'home' %}" class="quick-action">
                             <i class="fas fa-home"></i> На главную
                         </a>
+                        <button type="button" class="quick-action" id="createTopicBtn">
+                            <i class="fas fa-plus-circle"></i> Создать тему
+                        </button>
                         <button type="button" class="quick-action" id="scrollToPasswordBtn">
                             <i class="fas fa-key"></i> Сменить пароль
+                        </button>
+                        <button type="button" class="quick-action" id="scrollToCreatedBtn">
+                            <i class="fas fa-pen-fancy"></i> Мои темы
                         </button>
                         <button type="button" class="quick-action" id="notificationsBtn">
                             <i class="fas fa-bell"></i> Уведомления
@@ -1763,6 +1748,14 @@
 
                     <div class="stats-grid">
                         <div class="stat-card">
+                            <div class="stat-icon topics">
+                                <i class="fas fa-pen-fancy"></i>
+                            </div>
+                            <span class="stat-value">{{ created_topics.count }}</span>
+                            <span class="stat-label-small">Тем</span>
+                        </div>
+
+                        <div class="stat-card">
                             <div class="stat-icon comments">
                                 <i class="far fa-comments"></i>
                             </div>
@@ -1776,14 +1769,6 @@
                             </div>
                             <span class="stat-value">{{ liked_topics_page.paginator.count }}</span>
                             <span class="stat-label-small">Лайков</span>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon topics">
-                                <i class="far fa-newspaper"></i>
-                            </div>
-                            <span class="stat-value">{{ user.topics.count|default:0 }}</span>
-                            <span class="stat-label-small">Тем</span>
                         </div>
 
                         <div class="stat-card">
@@ -1803,21 +1788,40 @@
                     </h3>
 
                     <div class="activity-list">
-                        {% for activity in recent_activity|slice:":5" %}
-                            <div class="activity-item">
-                                <div class="activity-icon">
-                                    <i class="{{ activity.icon }}"></i>
+                        {% if created_topics %}
+                            {% for topic in created_topics|slice:":3" %}
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <i class="fas fa-pen-fancy"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Создал тему "{{ topic.name|truncatechars:40 }}"
+                                        </div>
+                                        <div class="activity-time">{{ topic.created_at|date:"d.m.Y" }}</div>
+                                    </div>
                                 </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">{{ activity.title }}</div>
-                                    <div class="activity-time">{{ activity.time }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if user.comments.all %}
+                            {% for comment in user.comments.all|slice:":2" %}
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <i class="far fa-comment"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Комментарий в теме
+                                            "{{ comment.topic.name|truncatechars:30 }}"
+                                        </div>
+                                        <div class="activity-time">{{ comment.created_at|date:"d.m.Y" }}</div>
+                                    </div>
                                 </div>
-                            </div>
-                        {% empty %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if not created_topics and not user.comments.all %}
                             <p style="color: var(--profile-text-secondary); text-align: center; padding: 10px;">
                                 Активности пока нет
                             </p>
-                        {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -1831,49 +1835,6 @@
         </div>
         <span id="notificationText">Изменения сохранены</span>
         <button class="close-notification">&times;</button>
-    </div>
-
-    <!-- Модальное окно смены пароля (резервное) -->
-    <div class="modal" id="passwordModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">
-                    <i class="fas fa-key"></i> Смена пароля
-                </h2>
-                <button class="close-modal">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <form id="passwordForm">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="currentPassword">Текущий пароль</label>
-                        <input type="password" id="currentPassword" class="form-input" required
-                               placeholder="Введите текущий пароль">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="newPassword">Новый пароль</label>
-                        <input type="password" id="newPassword" class="form-input" required
-                               placeholder="Введите новый пароль">
-                        <small style="display: block; margin-top: 5px; color: var(--profile-text-secondary);">
-                            Минимум 8 символов, включая цифры и буквы
-                        </small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirmPassword">Подтвердите новый пароль</label>
-                        <input type="password" id="confirmPassword" class="form-input" required
-                               placeholder="Повторите новый пароль">
-                    </div>
-                </form>
-            </div>
-
-            <div class="modal-actions">
-                <button type="button" class="btn btn-secondary close-modal-btn">Отмена</button>
-                <button type="submit" form="passwordForm" class="btn btn-primary">Сменить пароль</button>
-            </div>
-        </div>
     </div>
 {% endblock %}
 
@@ -1896,7 +1857,25 @@
 
             // Инициализация счетчика символов
             initCharCounter();
+
+            // Анимация карточек тем
+            animateTopicCards();
         });
+
+        // Анимация карточек тем
+        function animateTopicCards() {
+            const cards = document.querySelectorAll('.topic-card-mini');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
 
         // Обработка аватара
         const avatarInput = document.getElementById('id_image');
@@ -1936,6 +1915,7 @@
 
                         // Обновляем аватар в шапке
                         updateHeaderAvatar(e.target.result);
+                        showNotification('Аватар обновлен', 'success');
                     };
                     reader.readAsDataURL(file);
                 }
@@ -2104,7 +2084,35 @@
             });
         }
 
-        // Подтверждение email - УЛУЧШЕННЫЙ
+        // Прокрутка к созданным темам
+        const scrollToCreatedBtn = document.getElementById('scrollToCreatedBtn');
+        if (scrollToCreatedBtn) {
+            scrollToCreatedBtn.addEventListener('click', function () {
+                const createdSection = document.querySelector('.created-topics-section');
+                if (createdSection) {
+                    createdSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    // Добавляем подсветку
+                    createdSection.style.animation = 'none';
+                    setTimeout(() => {
+                        createdSection.style.animation = 'pulse 1s';
+                    }, 10);
+                }
+            });
+        }
+
+        // Кнопка создания темы
+        const createTopicBtns = document.querySelectorAll('#createTopicBtn');
+        createTopicBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                showNotification('Создание тем пока недоступно', 'info');
+            });
+        });
+
+        // Подтверждение email
         const verifyEmailBtn = document.getElementById('verifyEmailBtn');
         if (verifyEmailBtn) {
             verifyEmailBtn.addEventListener('click', function () {
@@ -2257,86 +2265,5 @@
                 showNotification('Настройки приватности пока не доступны', 'info');
             });
         }
-
-        // Анимация при прокрутке
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate');
-                }
-            });
-        }, observerOptions);
-
-        // Наблюдаем за элементами для анимации
-        document.querySelectorAll('.stat-card, .topic-card-mini, .activity-item').forEach(el => {
-            observer.observe(el);
-        });
-
-        // Добавляем CSS для анимации
-        const style = document.createElement('style');
-        style.textContent = `
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
-            }
-            50% {
-                transform: scale(1.05);
-                box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
-            }
-        }
-
-        .avatar-control-btn, .format-btn, .page-btn, .page-number,
-        .quick-action, .badge {
-            transition: all 0.3s ease;
-        }
-
-        .avatar-control-btn:hover, .format-btn:hover, .page-btn:hover:not(.disabled),
-        .page-number:hover:not(.active), .quick-action:hover, .badge:hover {
-            transform: translateY(-2px);
-        }
-
-        .animate {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .verify-email-btn {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .verify-email-btn::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
-            );
-            transform: rotate(45deg);
-            animation: shine 3s infinite linear;
-        }
-
-        @keyframes shine {
-            0% {
-                transform: translateX(-100%) rotate(45deg);
-            }
-            100% {
-                transform: translateX(100%) rotate(45deg);
-            }
-        }
-    `;
-        document.head.appendChild(style);
     </script>
 {% endblock %}
-[file content end]
