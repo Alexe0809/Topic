@@ -13,12 +13,14 @@ from .views import (
     reset_password,
     reset_password_form_view,
     terms_page,
+    topic_create,
 )
 
 urlpatterns = [
     path("", IndexView.as_view(), name="home"),
     path("category/<slug:slug>", CategoryView.as_view(), name="category"),
     path("topic/<slug:slug>", TopicDetailView.as_view(), name="topic"),
+    path("create/", topic_create, name="topic_create"),
     path("register/", registration_form, name="register"),
     path("login/", login_form, name="login"),
     path("reset_password/<str:token>", reset_password, name="reset_password"),

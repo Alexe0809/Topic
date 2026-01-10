@@ -8,11 +8,19 @@ from django.contrib.auth import (
 from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import SetPasswordForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, TemplateView, UpdateView
 
-from my_community.forms import ResetPasswordForm, UserLogin, UserRegistration
+from my_community.forms import (
+    ResetPasswordForm,
+    TopicForm,
+    UserLogin,
+    UserRegistration,
+)
 from my_community.models import (
     BaseReaction,
     Category,
@@ -22,10 +30,7 @@ from my_community.models import (
     TopicReaction,
     User,
 )
-from my_community.notifications.tasks import (
-    send_email_confirm,
-    send_email_reset_password,
-)
+from my_community.notifications.tasks import send_email
 
 
 class TopicDetailView(DetailView):
@@ -44,7 +49,10 @@ class TopicDetailView(DetailView):
                 context["user_reaction"] = reaction.reaction_type
             except TopicReaction.DoesNotExist:
                 context["user_reaction"] = None
+        topic.views += 1
+        topic.save()
         context["topic"] = topic
+        context["categories"] = topic.categories.all()
         return context
 
 
@@ -164,7 +172,7 @@ def registration_form(request):
                 "url": email_conf.get_confirmation_url(),
                 "username": user.username,
             }
-            send_email_confirm.delay(email_message_data)
+            send_email.delay(email_message_data, "confirmation")
             return redirect(reverse("home"))
 
     else:
@@ -231,10 +239,60 @@ def reset_password_form_view(request):
                 "url": reset_password_obj.get_confirmation_url(),
                 "username": user.username,
             }
-            send_email_reset_password.delay(email_message_data)
+            send_email.delay(email_message_data, "reset_password")
             return redirect("login")
     else:
         form = ResetPasswordForm()
     return render(
         request, "my_community/reset_password_form.html", {"form": form}
+    )
+
+
+@login_required
+def topic_create(request):
+    if request.method == "POST":
+        form = TopicForm(request.POST)
+        if form.is_valid():
+            topic = form.save(commit=False)
+            topic.author = request.user
+
+            topic.save()
+
+            selected_categories = form.cleaned_data.get("categories")
+            if selected_categories:
+                topic.categories.add(*selected_categories)
+
+            new_category_name = form.cleaned_data.get("new_category")
+            if new_category_name and new_category_name.strip():
+                new_category_name = new_category_name.strip()
+
+                existing_category = Category.objects.filter(
+                    name__iexact=new_category_name
+                ).first()
+
+                if existing_category:
+                    topic.categories.add(existing_category)
+                else:
+                    category, created = Category.objects.get_or_create(
+                        name=new_category_name,
+                        defaults={
+                            "description": f'Категория "{new_category_name}"'
+                        },
+                    )
+                    topic.categories.add(category)
+
+            messages.success(request, "Тема успешно создана!")
+            return redirect(topic.get_absolute_url())
+    else:
+        form = TopicForm()
+
+    categories = Category.objects.all().order_by("name")
+
+    return render(
+        request,
+        "my_community/topic_create.html",
+        {
+            "form": form,
+            "categories": categories,
+        },
     )

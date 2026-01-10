@@ -1,56 +1,86 @@
+import logging
+import smtplib
 from enum import Enum
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
+from my_community.notifications.schemas import EmailMessageData, MessageType
+
 
 class MessageTypes(Enum):
-    EMAIL_CONFIRMATION = {
-        "subject": "Подтверждение email",
-        "template_name_html": "emails/confirmation.html",
-        "template_name_txt": "emails/confirmation.txt",
-    }
-    RESET_PASSWORD = {
-        "subject": "Сброс пароля",
-        "template_name_html": "emails/reset_password.html",
-        "template_name_txt": "emails/reset_password.txt",
-    }
+    EMAIL_CONFIRMATION = MessageType(
+        **{
+            "subject": "Подтверждение email",
+            "template_name_html": "emails/confirmation.html",
+            "template_name_txt": "emails/confirmation.txt",
+        }
+    )
+    RESET_PASSWORD = MessageType(
+        **{
+            "subject": "Сброс пароля",
+            "template_name_html": "emails/reset_password.html",
+            "template_name_txt": "emails/reset_password.txt",
+        }
+    )
 
 
 class EmailSender:
     @classmethod
-    def send_email(cls, data: dict, target_email, message_type: MessageTypes):
-        admin_email = settings.ADMIN_EMAIL
-        admin_password = settings.ADMIN_PASSWORD
+    def send_email(
+        cls, task_id, data: EmailMessageData, message_type: MessageTypes
+    ):
+        context = ContextBuilder(data)
 
-        if not admin_email or not admin_password:
-            return "Email credentials not configured in environment variables"
+        html_content = ContextStringRender(
+            message_type.value.template_name_html, context.to_dict()
+        ).render()
 
-        context = {
-            "confirmation_url": f'http://0.0.0.0:8000/{data.get("url")}',
-            "username": data.get("username"),
-            "site_url": "#",
-        }
-        html_content = render_to_string(
-            message_type.value["template_name_html"], context
-        )
-
-        text_content = render_to_string(
-            message_type.value["template_name_txt"], context
-        )
+        text_content = ContextStringRender(
+            message_type.value.template_name_txt, context.to_dict()
+        ).render()
 
         email = EmailMultiAlternatives(
-            subject=message_type.value["subject"],
+            subject=message_type.value.subject,
             body=text_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[target_email],
+            to=[data.email],
         )
 
         email.attach_alternative(html_content, "text/html")
 
         try:
             email.send(fail_silently=False)
-            return f"email with data {data} sent to {target_email}"
-        except Exception as e:
-            return f"Failed to send email: {e}"
+            logging.log(
+                logging.INFO,
+                f"message: type={message_type}, task_id={task_id} was delivered",
+            )
+        except smtplib.SMTPException as e:
+            logging.log(logging.ERROR, e)
+            raise
+
+
+class ContextBuilder:
+    def __init__(self, data: EmailMessageData):
+        self.confirmation_url = (
+            f"{settings.FRONTEND_URL}{data.url}"  # тестовое решение
+        )
+        self.username = data.username
+        self.site_url = "#"
+
+    def to_dict(self):
+        return {
+            "confirmation_url": self.confirmation_url,
+            "username": self.username,
+            "site_url": self.site_url,
+        }
+
+
+class ContextStringRender:
+    def __init__(self, template_path: str, context_dict: dict):
+        self.template_path = template_path
+        self.context_dict = context_dict
+
+    def render(self):
+        return render_to_string(self.template_path, self.context_dict)

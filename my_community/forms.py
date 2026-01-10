@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import User
+from .models import Category, Topic, User
 
 
 class UserRegistration(forms.ModelForm):
@@ -49,3 +49,37 @@ class ResetPasswordForm(forms.Form):
             }
         ),
     )
+
+
+class TopicForm(forms.ModelForm):
+    new_category = forms.CharField(
+        required=False,
+        max_length=50,
+        label="Новая категория",
+        help_text="Создать новую категорию",
+    )
+
+    class Meta:
+        model = Topic
+        fields = ["name", "description", "categories"]
+        widgets = {
+            "description": forms.Textarea(
+                attrs={
+                    "rows": 10,
+                    "placeholder": "Подробно опишите вашу тему...",
+                }
+            ),
+            "name": forms.TextInput(
+                attrs={"placeholder": "Введите название темы..."}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["categories"].required = False
+        self.fields["categories"].queryset = Category.objects.all().order_by(
+            "name"
+        )
+        self.fields["categories"].widget.attrs.update(
+            {"class": "form-check-input"}
+        )

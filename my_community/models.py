@@ -190,11 +190,7 @@ class ReactionInterface:
 
 class Topic(ReactionInterface, SlugGeneratorMixin, UUIDModel):
     name = models.CharField(_("name"), max_length=100, null=False)
-    description = models.CharField(
-        _("description"),
-        max_length=1024,
-        blank=True,
-    )
+    description = models.TextField(_("description"))
     slug = models.SlugField(_("slug"), max_length=250, unique=True)
     is_pinned = models.BooleanField(_("is pinned"), default=False)
     is_closed = models.BooleanField(_("is closed"), default=False)
@@ -209,6 +205,7 @@ class Topic(ReactionInterface, SlugGeneratorMixin, UUIDModel):
     )
     like = models.PositiveIntegerField(_("likes"), default=0)
     dislike = models.PositiveIntegerField(_("dislikes"), default=0)
+    views = models.PositiveIntegerField(_("views"), default=0)
 
     def get_absolute_url(self):
         return reverse("topic", kwargs={"slug": self.slug})
@@ -336,7 +333,7 @@ class PasswordResetConfirmation(BaseConfirmation):
     def get_confirmation_url(self):
         from django.urls import reverse
 
-        return reverse("reset")
+        return reverse("reset_password", kwargs={"token": self.token})
 
 
 class EmailConfirmation(BaseConfirmation):
