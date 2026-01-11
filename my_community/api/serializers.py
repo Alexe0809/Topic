@@ -57,8 +57,6 @@ class CommentDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "author",
             "topic",
-            "like",
-            "dislike",
             "parent",
             "user_reaction",
         ]
@@ -89,8 +87,6 @@ class TopicDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "author",
-            "like",
-            "dislike",
             "user_reaction",
         ]
 

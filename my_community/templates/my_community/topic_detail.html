@@ -192,7 +192,7 @@
                                 {% else %}
                                     <i class="far fa-thumbs-up"></i> <!-- Незакрашенная иконка -->
                                 {% endif %}
-                                <span id="like-count">{{ topic.like }}</span>
+                                <span id="like-count">{{ likes }}</span>
                             </button>
 
                             <button class="btn-dislike" onclick="dislikeTopic()">
@@ -201,7 +201,7 @@
                                 {% else %}
                                     <i class="far fa-thumbs-down"></i>
                                 {% endif %}
-                                <span id="dislike-count">{{ topic.dislike }}</span>
+                                <span id="dislike-count">{{ dislikes }}</span>
                             </button>
 
                             <button class="btn-bookmark" onclick="bookmarkTopic()">
