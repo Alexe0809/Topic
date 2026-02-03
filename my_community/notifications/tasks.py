@@ -4,6 +4,7 @@ if settings.USE_CELERY:
     import smtplib
 
     from celery import shared_task
+    from celery.exceptions import Reject
 
     from .email import EmailSender, MessageTypes
     from .schemas import EmailMessageData
@@ -27,8 +28,19 @@ if settings.USE_CELERY:
             raise ValueError(
                 f"message type '{message_type}' is not supported, use '{message_type_table.keys()}'"
             )
+
         data = EmailMessageData(**email_message_data)
-        result = EmailSender.send_email(
-            task_id=self.request.id, data=data, message_type=message_type
-        )
-        return result
+
+        try:
+
+            return EmailSender.send_email(
+                task_id=self.request.id,
+                data=data,
+                message_type=message_type,
+            )
+
+        except smtplib.SMTPException as exc:
+            if self.request.retries >= self.max_retries:
+                raise Reject(exc, requeue=False)
+
+            raise

@@ -34,8 +34,9 @@ ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1"]
 ADMIN_EMAIL = config("ADMIN_EMAIL")
 ADMIN_PASSWORD = config("ADMIN_PASSWORD")
 FRONTEND_URL = config("FRONTEND_URL")
-USE_CELERY = False
+USE_CELERY = True
 AUTH_USER_MODEL = "my_community.User"
+RABBITMQ_URL = config("RABBITMQ_URL")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -146,8 +147,8 @@ LOGGING = {
     },
 }
 
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_BROKER_URL = RABBITMQ_URL
+CELERY_RESULT_BACKEND = "redis://topic-redis-1:6379/0"
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
