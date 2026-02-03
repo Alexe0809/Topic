@@ -11,7 +11,6 @@ from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
-from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, TemplateView, UpdateView
@@ -53,14 +52,7 @@ class TopicDetailView(DetailView):
                 context["user_reaction"] = reaction.reaction_type
             except TopicReaction.DoesNotExist:
                 context["user_reaction"] = None
-        reactions = TopicReaction.objects.filter(topic=topic).aggregate(
-            likes=Count(
-                "id", filter=Q(reaction_type=TopicReaction.ReactionType.LIKE)
-            ),
-            dislikes=Count(
-                "id", filter=Q(reaction_type=TopicReaction.ReactionType.DISLIKE)
-            ),
-        )
+        reactions = topic.get_like_dislike_dict()
         topic.views += 1
         topic.save()
         context["topic"] = topic
