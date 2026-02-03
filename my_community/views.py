@@ -179,7 +179,11 @@ def registration_form(request):
                 "username": user.username,
             }
             if settings.USE_CELERY:
-                send_email.delay(email_message_data, "confirmation")
+                send_email.apply_async(
+                    args=[email_message_data, "confirmation"],
+                    queue="email.confirm",
+                    routing_key="email.confirm",
+                )
             return redirect(reverse("home"))
 
     else:
@@ -247,7 +251,11 @@ def reset_password_form_view(request):
                 "username": user.username,
             }
             if settings.USE_CELERY:
-                send_email.delay(email_message_data, "reset_password")
+                send_email.apply_async(
+                    args=[email_message_data, "reset_password"],
+                    queue="email.reset",
+                    routing_key="email.reset",
+                )
             return redirect("login")
     else:
         form = ResetPasswordForm()

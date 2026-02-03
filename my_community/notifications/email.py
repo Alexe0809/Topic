@@ -3,7 +3,7 @@ import smtplib
 from enum import Enum
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 
 from my_community.notifications.schemas import EmailMessageData, MessageType
@@ -31,21 +31,29 @@ class EmailSender:
     def send_email(
         cls, task_id, data: EmailMessageData, message_type: MessageTypes
     ):
+
         context = ContextBuilder(data)
 
-        html_content = ContextStringRender(
-            message_type.value.template_name_html, context.to_dict()
-        ).render()
+        try:
+            html_content = ContextStringRender(
+                message_type.value.template_name_html, context.to_dict()
+            ).render()
 
-        text_content = ContextStringRender(
-            message_type.value.template_name_txt, context.to_dict()
-        ).render()
+            text_content = ContextStringRender(
+                message_type.value.template_name_txt, context.to_dict()
+            ).render()
+        except Exception as exc:
+            logging.error("Template render failed: %s", exc)
+            raise ValueError("Email template error")
+
+        connection = get_connection(timeout=10)
 
         email = EmailMultiAlternatives(
             subject=message_type.value.subject,
             body=text_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[data.email],
+            connection=connection,
         )
 
         email.attach_alternative(html_content, "text/html")
@@ -56,6 +64,7 @@ class EmailSender:
                 logging.INFO,
                 f"message: type={message_type}, task_id={task_id} was delivered",
             )
+            return True
         except smtplib.SMTPException as e:
             logging.log(logging.ERROR, e)
             raise
