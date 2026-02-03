@@ -10,7 +10,10 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
 from my_community.mixins.model_mixins import SlugGeneratorMixin
-from my_community.utils.model_utils import reaction_action
+from my_community.utils.model_utils import (
+    get_dict_with_reaction_counts,
+    reaction_action,
+)
 from my_community.validators.model_validators import password_validator
 
 
@@ -148,6 +151,9 @@ class Topic(ReactionInterface, SlugGeneratorMixin, UUIDModel):
             reaction_type=TopicReaction.ReactionType.DISLIKE,
         )
 
+    def get_like_dislike_dict(self):
+        return get_dict_with_reaction_counts(TopicReaction, "topic", self)
+
 
 class BaseConfirmation(UUIDModel):
     token = models.CharField(
@@ -179,19 +185,8 @@ class BaseConfirmation(UUIDModel):
     class Meta:
         abstract = True
 
-    def __str__(self):
-        return "No defined"
-
-    def save(self, *args, **kwargs):
-        if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(hours=24)
-
-        if not self.token:
-            self.token = self._generate_token()
-
-        super().save(*args, **kwargs)
-
-    def _generate_token(self):
+    @classmethod
+    def _generate_token(cls):
         return uuid.uuid4().hex + uuid.uuid4().hex
 
     @property
@@ -211,19 +206,9 @@ class BaseConfirmation(UUIDModel):
 
         return cls.objects.create(
             user=user,
+            token=cls._generate_token(),
             expires_at=timezone.now() + timedelta(hours=expiration_hours),
         )
-
-    @classmethod
-    def validate_token(cls, token):
-        try:
-            confirmation = cls.objects.get(token=token)
-            if confirmation.is_valid:
-                confirmation.confirm()
-                return confirmation
-            return None
-        except cls.DoesNotExist:
-            return None
 
 
 class PasswordResetConfirmation(BaseConfirmation):
@@ -327,6 +312,9 @@ class Comment(ReactionInterface, UUIDModel):
             target=self,
             reaction_type=CommentReaction.ReactionType.DISLIKE,
         )
+
+    def get_like_dislike_dict(self):
+        return get_dict_with_reaction_counts(CommentReaction, "comment", self)
 
 
 class CommentReaction(BaseReaction):
