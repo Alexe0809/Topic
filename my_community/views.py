@@ -127,7 +127,7 @@ class UserProfile(LoginRequiredMixin, UpdateView):
         "image",
         "description",
     ]
-    login_url = "/login/"  # путь к твоему логину
+    login_url = "/login/"
     redirect_field_name = "next"
 
     def get_object(self, queryset=None):
@@ -148,22 +148,35 @@ class UserProfile(LoginRequiredMixin, UpdateView):
         context["password_form"] = PasswordChangeForm(user=self.request.user)
         return context
 
+    def form_invalid(self, form):
+        self.object.refresh_from_db()
+        return super().form_invalid(form)
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if (
-            "new_password1" in request.POST
-        ):  # new_password1 это поле формы PasswordChangeForm,
-            # если оно присутствует в POST запросе, значит запрос на смену пароля
-            form = PasswordChangeForm(user=request.user, data=request.POST)
-            if form.is_valid():
-                user = form.save()
-                update_session_auth_hash(request, user)  # чтобы не разлогинило
+
+        # Форма смены пароля
+        if "new_password1" in request.POST:
+            password_form = PasswordChangeForm(
+                user=self.object, data=request.POST
+            )
+            if password_form.is_valid():
+                password_form.save()
+                update_session_auth_hash(request, self.object)
                 messages.success(request, "Пароль успешно изменён!")
                 return redirect("user_profile")
             else:
+                # Создаём форму профиля **с данными из базы**
+                profile_form = self.get_form_class()(instance=self.object)
+
                 context = self.get_context_data()
-                context["password_form"] = form
+                context["form"] = profile_form  # профиль с данными из базы
+                context["password_form"] = (
+                    password_form  # форма пароля с ошибками
+                )
                 return self.render_to_response(context)
+
+        # Сабмит формы профиля
         return super().post(request, *args, **kwargs)
 
 
