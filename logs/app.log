@@ -1,0 +1,59 @@
+[2026-02-23 19:45:57,851] INFO django.utils.autoreload: watching for file changes with statreloader
+[2026-03-02 19:36:15,323] INFO django.utils.autoreload: watching for file changes with statreloader
+[2026-03-02 19:36:28,926] WARNING django.request: not found: /favicon.ico
+[2026-03-02 19:36:59,333] ERROR django.request: internal server error: /profile/
+Traceback (most recent call last):
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/contrib/auth/mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/views/generic/base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/my_community/views.py", line 194, in post
+    return super().post(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 206, in post
+    return super().post(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 151, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/views/generic/edit.py", line 133, in form_valid
+    self.object = form.save()
+                  ^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/forms/models.py", line 554, in save
+    self.instance.save()
+  File "/home/alexey/PycharmProjects/Topic/my_community/mixins/model_mixins.py", line 46, in save
+    return super().save(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/contrib/auth/base_user.py", line 65, in save
+    super().save(*args, **kwargs)
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1132, in _save_table
+    (getattr(self, f.attname) if raw else f.pre_save(self, False)),
+                                          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/db/models/fields/files.py", line 338, in pre_save
+    file.save(file.name, file.file, save=False)
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/db/models/fields/files.py", line 99, in save
+    self.name = self.storage.save(name, content, max_length=self.field.max_length)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/core/files/storage/base.py", line 49, in save
+    name = self._save(name, content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alexey/PycharmProjects/Topic/.venv/lib/python3.12/site-packages/django/core/files/storage/filesystem.py", line 100, in _save
+    os.makedirs(directory, exist_ok=True)
+  File "<frozen os>", line 225, in makedirs
+PermissionError: [Errno 13] Permission denied: '/home/alexey/PycharmProjects/Topic/static/avatars'
