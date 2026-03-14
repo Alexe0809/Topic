@@ -1,10 +1,19 @@
+import logging
+
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import (
+    authenticate,
+    login,
+    logout,
+    update_session_auth_hash,
+)
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-from django.views.generic import DetailView, TemplateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import DetailView, TemplateView, UpdateView
 
 from my_community.forms import (
     ResetPasswordForm,
@@ -13,6 +22,7 @@ from my_community.forms import (
     UserRegistration,
 )
 from my_community.models import (
+    BaseReaction,
     Category,
     EmailConfirmation,
     PasswordResetConfirmation,
@@ -25,6 +35,8 @@ from Topic import settings
 if settings.USE_CELERY:
     from my_community.notifications.tasks import send_email
 
+logger = logging.getLogger(__name__)
+
 
 class TopicDetailView(DetailView):
     model = Topic
@@ -34,11 +46,17 @@ class TopicDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         slug = self.kwargs.get("slug")
-        user = self.request.user
+        user = getattr(self.request, "user", None)
         topic = get_object_or_404(Topic, slug=slug)
-        if user is not None:
+        if user and user.is_authenticated:
             try:
                 reaction = TopicReaction.objects.get(user=user, topic=topic)
+                logger.info(
+                    "User reaction loaded: user_id=%s topic_id=%s reaction=%s",
+                    user.id,
+                    topic.id,
+                    reaction.reaction_type,
+                )
                 context["user_reaction"] = reaction.reaction_type
             except TopicReaction.DoesNotExist:
                 context["user_reaction"] = None
@@ -74,9 +92,11 @@ class ConfirmView(TemplateView):
         confirmation = get_object_or_404(EmailConfirmation, token=token)
         try:
             if confirmation.confirm():
+                logger.info(f"Email confirmed successfully. Token={token}")
                 context["success"] = True
                 context["message"] = "Email успешно подтверждён"
         except ValueError as e:
+            logger.error(f"Email confirmation failed. Token={token}. Error={e}")
             context["expired"] = True
             context["message"] = str(e)
 
@@ -104,11 +124,98 @@ class CategoryView(TemplateView):
         return context
 
 
+class UserProfile(LoginRequiredMixin, UpdateView):
+    model = User
+    template_name = "my_community/user_profile.html"
+    success_url = reverse_lazy("user_profile")
+    fields = [
+        "email",
+        "phone",
+        "username",
+        "first_name",
+        "last_name",
+        "image",
+        "description",
+    ]
+    login_url = "/login/"
+    redirect_field_name = "next"
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        liked_topics = Topic.objects.filter(
+            reaction__user=self.request.user,
+            reaction__reaction_type=BaseReaction.ReactionType.LIKE,
+        )
+        paginator = Paginator(liked_topics, 10)
+        page_number = self.request.GET.get("page")
+        context["created_topics"] = Topic.objects.filter(
+            author=self.request.user
+        )
+        context["liked_topics_page"] = paginator.get_page(page_number)
+        context["password_form"] = PasswordChangeForm(user=self.request.user)
+        return context
+
+    def form_invalid(self, form):
+        self.object.refresh_from_db()
+        return super().form_invalid(form)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        if "new_password1" in request.POST:
+            password_form = PasswordChangeForm(
+                user=self.object, data=request.POST
+            )
+            if password_form.is_valid():
+                logger.info(
+                    "new_password1 Form passed validation[registration_form]: user_id=%s",
+                    request.user.id,
+                )
+                try:
+                    user = password_form.save()
+                    logger.info(
+                        "User changed password successfully: new_user_id=%s",
+                        user.id,
+                    )
+                except Exception:
+                    logger.error("Failed to change password", exc_info=True)
+                    raise
+                update_session_auth_hash(request, self.object)
+                messages.success(request, "Password successfully changed !")
+                return redirect("user_profile")
+            else:
+                logger.warning(
+                    "Form did not pass validation [registration_form]: errors=%s, user_id=%s",
+                    password_form.errors,
+                    request.user.id,
+                )
+                profile_form = self.get_form_class()(instance=self.object)
+
+                context = self.get_context_data()
+                context["form"] = profile_form
+                context["password_form"] = password_form
+                return self.render_to_response(context)
+
+        return super().post(request, *args, **kwargs)
+
+
 def registration_form(request):
     if request.method == "POST":
         form = UserRegistration(request.POST)
         if form.is_valid():
-            user = form.save()
+            logger.info("Registration form valid: user_id=%s", request.user.id)
+            try:
+                user = form.save()
+                logger.info(
+                    "User registered successfully: new_user_id=%s",
+                    request.user.id,
+                )
+            except Exception:
+                logger.error("Failed to register user", exc_info=True)
+                raise
             email_conf = EmailConfirmation.create_for_user(user)
             email_message_data = {
                 "email": user.email,
@@ -122,6 +229,8 @@ def registration_form(request):
                     routing_key="email.confirm",
                 )
             return redirect(reverse("home"))
+        else:
+            logger.warning("Registration form invalid: errors=%s", form.errors)
 
     else:
         form = UserRegistration()
@@ -132,12 +241,21 @@ def login_form(request):
     if request.method == "POST":
         form = UserLogin(request, request.POST)
         if form.is_valid():
+            logger.info(
+                "login_form passed validation: user_id=%s", request.user.id
+            )
             username = form.cleaned_data.get("username")
             password = form.cleaned_data.get("password")
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
                 return redirect("home")
+            else:
+                logger.warning(
+                    "login_form did not pass validation: errors=%s, user_id=%s",
+                    form.errors,
+                    request.user.id,
+                )
     else:
         form = UserLogin(request)
     return render(request, "my_community/login.html", {"form": form})
@@ -153,9 +271,20 @@ def reset_password(request, token):
     if request.method == "POST":
         form = SetPasswordForm(user=user, data=request.POST)
         if form.is_valid():
+            logger.info(
+                "reset_password Form passed validation: user_id=%s",
+                request.user.id,
+            )
             confirmation.confirm()
             form.save()
             return redirect("home")
+        else:
+            logger.warning(
+                "reset_password Form did not pass validation [reset_password]: errors=%s, user_id=%s",
+                form.errors,
+                request.user.id,
+            )
+
     else:
         form = SetPasswordForm(user=user)
 
@@ -179,9 +308,25 @@ def reset_password_form_view(request):
     if request.method == "POST":
         form = ResetPasswordForm(request.POST)
         if form.is_valid():
+            logger.info(
+                "reset_password_form_view Form passed validation: user_id=%s",
+                request.user.id,
+            )
             email = form.cleaned_data.get("email")
             user = get_object_or_404(User, email=email)
-            reset_password_obj = PasswordResetConfirmation.create_for_user(user)
+            try:
+                reset_password_obj = PasswordResetConfirmation.create_for_user(
+                    user
+                )
+            except Exception:
+                logger.error(
+                    "Error creating reset_password_obj: user_id=%s, email=%s",
+                    user.id,
+                    user.email,
+                    exc_info=True,
+                )
+                raise
+
             email_message_data = {
                 "email": user.email,
                 "url": reset_password_obj.get_confirmation_url(),
@@ -194,6 +339,13 @@ def reset_password_form_view(request):
                     routing_key="email.reset",
                 )
             return redirect("login")
+
+        else:
+            logger.warning(
+                "reset_password_form_view Form did not pass validation[reset_password_form_view]: errors=%s, user_id=%s",
+                form.errors,
+                request.user.id,
+            )
     else:
         form = ResetPasswordForm()
     return render(
@@ -205,37 +357,69 @@ def reset_password_form_view(request):
 def topic_create(request):
     if request.method == "POST":
         form = TopicForm(request.POST)
+
         if form.is_valid():
-            topic = form.save(commit=False)
-            topic.author = request.user
+            logger.info(
+                "topic_create Form passed validation: cleaned_data=%s, user_id=%s",
+                form.cleaned_data,
+                request.user.id,
+            )
 
-            topic.save()
+            try:
+                topic = form.save(commit=False)
+                topic.author = request.user
 
-            selected_categories = form.cleaned_data.get("categories")
-            if selected_categories:
-                topic.categories.add(*selected_categories)
+                topic.save()
+                logger.info(
+                    "Topic was saved: saved_data=%s, user_id=%s, topic_id=%s",
+                    form.cleaned_data,
+                    request.user.id,
+                    topic.id,
+                )
 
-            new_category_name = form.cleaned_data.get("new_category")
-            if new_category_name and new_category_name.strip():
-                new_category_name = new_category_name.strip()
+                selected_categories = form.cleaned_data.get("categories")
+                if selected_categories:
+                    topic.categories.add(*selected_categories)
 
-                existing_category = Category.objects.filter(
-                    name__iexact=new_category_name
-                ).first()
+                new_category_name = form.cleaned_data.get("new_category")
+                if new_category_name and new_category_name.strip():
+                    new_category_name = new_category_name.strip()
+                    existing_category = Category.objects.filter(
+                        name__iexact=new_category_name
+                    ).first()
+                    if existing_category:
+                        topic.categories.add(existing_category)
+                        logger.info("Topic added to existing category")
+                    else:
+                        category, created = Category.objects.get_or_create(
+                            name=new_category_name,
+                            defaults={
+                                "description": f'Category "{new_category_name}"'
+                            },
+                        )
+                        topic.categories.add(category)
+                        logger.info(
+                            "Category was created and topic added into this category"
+                        )
 
-                if existing_category:
-                    topic.categories.add(existing_category)
-                else:
-                    category, created = Category.objects.get_or_create(
-                        name=new_category_name,
-                        defaults={
-                            "description": f'Категория "{new_category_name}"'
-                        },
-                    )
-                    topic.categories.add(category)
+                messages.success(request, "Topic successfully created!")
+                return redirect(topic.get_absolute_url())
 
-            messages.success(request, "Тема успешно создана!")
-            return redirect(topic.get_absolute_url())
+            except Exception:
+                logger.error(
+                    "Error saving topic: submitted_data=%s, user_id=%s",
+                    form.data,
+                    request.user.id,
+                    exc_info=True,
+                )
+                raise
+        else:
+            logger.warning(
+                "topic_create Form did not pass validation[topic_create]: submitted_data=%s, errors=%s, user_id=%s",
+                form.data,
+                form.errors,
+                request.user.id,
+            )
     else:
         form = TopicForm()
 

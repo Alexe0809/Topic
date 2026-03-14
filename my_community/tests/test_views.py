@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
 from my_community.tests.factories import TopicFactory
@@ -86,14 +87,15 @@ class TestIndexView:
 
         @pytest.mark.django_db
         def test_get_context_data(self):
-
             topic = TopicFactory(slug="context-topic")
 
             request = self.factory.get(f"/topic/{topic.slug}/")
             view = self.view_class()
             view.request = request
-            view.object = topic
             view.kwargs = {"slug": "context-topic"}
+            view.object = topic
+
+            request.user = AnonymousUser()
 
             context = view.get_context_data()
 

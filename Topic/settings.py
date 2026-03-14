@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import logging
 import os
 from pathlib import Path
 
@@ -130,20 +131,57 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
+
+class SensitiveDataFilter(logging.Filter):
+    SENSITIVE_KEYS = {"password", "token", "secret", "pin"}
+
+    def filter(self, record):
+        msg = str(record.getMessage()).lower()
+        for key in self.SENSITIVE_KEYS:
+            if key in msg:
+                msg.replace(key, "**SensitiveDAta**")  # Replace sensitive data
+
+        record.msg = msg
+        record.args = None
+        return True
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
+    "filters": {
+        "mask_sensitive": {
+            "()": SensitiveDataFilter,
         },
     },
-    "loggers": {
-        "django.db.backends": {
-            "level": "DEBUG",
-            "handlers": ["console"],
+    "formatters": {
+        "standard": {
+            "format": "[{asctime}] {levelname} {name}: {message}",
+            "style": "{",
         },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+            "filters": ["mask_sensitive"],
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOG_DIR / "app.log",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 5,
+            "formatter": "standard",
+            "level": "INFO",
+            "filters": ["mask_sensitive"],
+        },
+    },
+    "root": {
+        "handlers": ["console", "file"],
+        "level": "INFO",
     },
 }
 
@@ -156,3 +194,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = ADMIN_EMAIL
 EMAIL_HOST_PASSWORD = ADMIN_PASSWORD
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+LOGIN_URL = "/login/"  # URL view для логина
+LOGIN_REDIRECT_URL = "/profile/"
