@@ -35,6 +35,8 @@ from Topic import settings
 if settings.USE_CELERY:
     from my_community.notifications.tasks import send_email
 
+logger = logging.getLogger(__name__)
+
 
 class TopicDetailView(DetailView):
     model = Topic
