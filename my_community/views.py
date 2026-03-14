@@ -46,9 +46,9 @@ class TopicDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         slug = self.kwargs.get("slug")
-        user = self.request.user
+        user = getattr(self.request, "user", None)
         topic = get_object_or_404(Topic, slug=slug)
-        if user is not None:
+        if user and user.is_authenticated:
             try:
                 reaction = TopicReaction.objects.get(user=user, topic=topic)
                 logger.info(
